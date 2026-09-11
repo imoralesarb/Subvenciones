@@ -25,6 +25,7 @@ st.set_page_config(
 )
 
 # --- ESTILOS CSS PERSONALIZADOS PARA DISEÑO Y RECUADROS ---
+# --- ESTILOS CSS PERSONALIZADOS ---
 st.markdown(
     """
     <style>
@@ -61,22 +62,9 @@ st.markdown(
             background-color: #f8f9fa;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
-            padding: 16px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-
-
-        /* =========================================================
-           TEXTO DE ALINEACIÓN
-           ========================================================= */
-
-        .alignment-fix {
-            display: flex;
-            align-items: center;
-            height: 100%;
-            font-size: 13px;
-            color: #31333F;
+            padding: 14px;
+            margin-top: 8px;
+            margin-bottom: 8px;
         }
 
 
@@ -86,29 +74,30 @@ st.markdown(
 
         h1 {
             font-size: 1.9rem !important;
-            margin-bottom: 0.4rem !important;
+            margin-bottom: 0.3rem !important;
         }
 
         h3 {
             font-size: 1.2rem !important;
-            margin-top: 0.5rem !important;
-            margin-bottom: 0.4rem !important;
+            margin-top: 0.4rem !important;
+            margin-bottom: 0.3rem !important;
         }
 
 
         /* =========================================================
-           CAMPOS DEL FORMULARIO
+           CAMPOS DEL FORMULARIO — MUY COMPACTOS
            ========================================================= */
 
-        /* Altura de inputs */
+        /* Text input y number input */
         div[data-baseweb="input"] {
-            min-height: 32px !important;
-            height: 32px !important;
+            min-height: 28px !important;
+            height: 28px !important;
         }
 
-        /* Altura de select y multiselect */
+        /* Select y multiselect */
         div[data-baseweb="select"] {
-            min-height: 32px !important;
+            min-height: 28px !important;
+            height: 28px !important;
         }
 
 
@@ -117,39 +106,44 @@ st.markdown(
            ========================================================= */
 
         div[data-baseweb="input"] input {
-            font-size: 13px !important;
-            padding-top: 4px !important;
-            padding-bottom: 4px !important;
+            font-size: 12px !important;
+            padding: 2px 6px !important;
+            height: 26px !important;
+        }
+
+        div[data-baseweb="select"] {
+            font-size: 12px !important;
         }
 
         div[data-baseweb="select"] * {
-            font-size: 13px !important;
+            font-size: 12px !important;
         }
 
 
         /* =========================================================
-           ETIQUETAS DE LOS CAMPOS
+           ETIQUETAS
            ========================================================= */
 
         [data-testid="stWidgetLabel"] p {
-            font-size: 13px !important;
-            margin-bottom: 2px !important;
+            font-size: 12px !important;
+            margin-bottom: 1px !important;
+            line-height: 1.1 !important;
         }
 
         label {
-            font-size: 13px !important;
+            font-size: 12px !important;
         }
 
 
         /* =========================================================
-           MULTISELECT
+           MULTISELECT — OPCIONES SELECCIONADAS
            ========================================================= */
 
-        /* Etiquetas seleccionadas dentro del multiselect */
         [data-baseweb="tag"] {
-            font-size: 12px !important;
-            padding: 1px 5px !important;
-            margin: 1px 2px !important;
+            font-size: 11px !important;
+            padding: 0px 4px !important;
+            margin: 0px 1px !important;
+            line-height: 18px !important;
         }
 
 
@@ -158,7 +152,7 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stTextInput"] {
-            margin-bottom: 2px !important;
+            margin-bottom: 0px !important;
         }
 
 
@@ -167,13 +161,13 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stNumberInput"] {
-            margin-bottom: 2px !important;
+            margin-bottom: 0px !important;
         }
 
-        /* Botones + y - del number input */
         [data-testid="stNumberInput"] button {
-            min-height: 30px !important;
-            height: 30px !important;
+            min-height: 26px !important;
+            height: 26px !important;
+            width: 26px !important;
         }
 
 
@@ -182,7 +176,7 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stDateInput"] {
-            margin-bottom: 2px !important;
+            margin-bottom: 0px !important;
         }
 
 
@@ -191,16 +185,16 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stMultiSelect"] {
-            margin-bottom: 2px !important;
+            margin-bottom: 0px !important;
         }
 
 
         /* =========================================================
-           ESPACIADO GENERAL ENTRE ELEMENTOS
+           ESPACIO ENTRE ELEMENTOS
            ========================================================= */
 
         [data-testid="stVerticalBlock"] {
-            gap: 0.5rem;
+            gap: 0.3rem;
         }
 
 
@@ -209,8 +203,8 @@ st.markdown(
            ========================================================= */
 
         [data-testid="column"] {
-            padding-left: 0.3rem;
-            padding-right: 0.3rem;
+            padding-left: 0.2rem;
+            padding-right: 0.2rem;
         }
 
 
@@ -219,7 +213,7 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stCheckbox"] label {
-            font-size: 12px !important;
+            font-size: 11px !important;
         }
 
 
@@ -228,17 +222,18 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stSlider"] {
-            margin-top: -4px;
-            margin-bottom: -4px;
+            margin-top: -6px;
+            margin-bottom: -6px;
         }
 
 
         /* =========================================================
-           MENSAJES / ALERTAS
+           ALERTAS
            ========================================================= */
 
         [data-testid="stAlert"] {
-            font-size: 13px !important;
+            font-size: 12px !important;
+            padding: 0.4rem 0.6rem !important;
         }
 
 
@@ -247,8 +242,8 @@ st.markdown(
            ========================================================= */
 
         .block-container {
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
+            padding-top: 1.2rem;
+            padding-bottom: 1.2rem;
         }
 
     </style>
