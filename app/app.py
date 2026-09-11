@@ -28,21 +28,15 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        /* Limitar el ancho máximo de la app para evitar que se expanda demasiado en pantallas grandes */
-        .block-container {
-            max-width: 1200px;
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-            margin: auto;
-        }
         div.stButton > button:first-child {
             background-color: #0066cc;
             color: white;
             font-weight: bold;
-            font-size: 15px;
-            padding: 0.5rem 1rem;
+            font-size: 16px;
+            padding: 0.6rem 1.2rem;
             border-radius: 8px;
             border: none;
+            width: 100%;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
@@ -51,10 +45,27 @@ st.markdown(
             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
             color: white;
         }
+        /* Contenedor con borde elegante para agrupar los controles de resultados */
+        .results-container {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        .alignment-fix {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            font-size: 15px;
+            color: #31333F;
+        }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 # 1. Conexión a Supabase y modelo de IA
 supabase = obtener_cliente()
