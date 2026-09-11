@@ -85,21 +85,46 @@ st.markdown(
 
         /* =========================================================
            CAMPOS DEL FORMULARIO
-           SOLO REDUCIMOS SU TAMAÑO
            ========================================================= */
-
-        /* Campo de texto y número */
+        
+        /* Text input, number input */
         div[data-baseweb="input"] {
-            min-height: 24px !important;
-            height: 24px !important;
+            min-height: 22px !important;
+            height: 22px !important;
         }
-
+        
         /* Select y multiselect */
         div[data-baseweb="select"] {
-            min-height: 24px !important;
-            height: 24px !important;
+            min-height: 22px !important;
+            height: 22px !important;
         }
-
+        
+        /* Texto dentro de los campos */
+        div[data-baseweb="input"] input {
+            font-size: 11px !important;
+            padding: 0 5px !important;
+            height: 20px !important;
+        }
+        
+        /* Texto de los desplegables */
+        div[data-baseweb="select"] * {
+            font-size: 11px !important;
+        }
+        
+        /* Opciones seleccionadas del multiselect */
+        [data-baseweb="tag"] {
+            font-size: 10px !important;
+            padding: 0 3px !important;
+            margin: 0 1px !important;
+            line-height: 16px !important;
+        }
+        
+        /* Botones +/- de los campos numéricos */
+        [data-testid="stNumberInput"] button {
+            min-height: 20px !important;
+            height: 20px !important;
+            width: 20px !important;
+        }
 
         /* =========================================================
            TEXTO DENTRO DE LOS CAMPOS
