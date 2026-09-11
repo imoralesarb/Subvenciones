@@ -429,8 +429,9 @@ if st.session_state.df_resultados is not None and not st.session_state.df_result
         hide_index=True,
         use_container_width=True,
     )
-
     csv = st.session_state.df_resultados.drop(
-        columns=["Es Novedad", "Es Actualizada"]
+        columns=["Es Novedad", "Es Actualizada"],
+        errors="ignore"
     ).to_csv(index=False).encode("utf-8")
+    
     st.download_button("⬇️ Descargar resultados (CSV)", csv, "subvenciones.csv", "text/csv")
