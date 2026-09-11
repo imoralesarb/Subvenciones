@@ -25,7 +25,6 @@ st.set_page_config(
 )
 
 # --- ESTILOS CSS PERSONALIZADOS PARA DISEÑO Y RECUADROS ---
-# --- ESTILOS CSS PERSONALIZADOS ---
 st.markdown(
     """
     <style>
@@ -62,9 +61,9 @@ st.markdown(
             background-color: #f8f9fa;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
-            padding: 14px;
-            margin-top: 8px;
-            margin-bottom: 8px;
+            padding: 16px;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
 
 
@@ -74,30 +73,31 @@ st.markdown(
 
         h1 {
             font-size: 1.9rem !important;
-            margin-bottom: 0.3rem !important;
+            margin-bottom: 0.4rem !important;
         }
 
         h3 {
             font-size: 1.2rem !important;
-            margin-top: 0.4rem !important;
-            margin-bottom: 0.3rem !important;
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.4rem !important;
         }
 
 
         /* =========================================================
-           CAMPOS DEL FORMULARIO — MUY COMPACTOS
+           CAMPOS DEL FORMULARIO
+           SOLO REDUCIMOS SU TAMAÑO
            ========================================================= */
 
-        /* Text input y number input */
+        /* Campo de texto y número */
         div[data-baseweb="input"] {
-            min-height: 28px !important;
-            height: 28px !important;
+            min-height: 24px !important;
+            height: 24px !important;
         }
 
         /* Select y multiselect */
         div[data-baseweb="select"] {
-            min-height: 28px !important;
-            height: 28px !important;
+            min-height: 24px !important;
+            height: 24px !important;
         }
 
 
@@ -106,28 +106,27 @@ st.markdown(
            ========================================================= */
 
         div[data-baseweb="input"] input {
-            font-size: 12px !important;
-            padding: 2px 6px !important;
-            height: 26px !important;
+            font-size: 11px !important;
+            padding: 1px 6px !important;
+            height: 22px !important;
         }
 
         div[data-baseweb="select"] {
-            font-size: 12px !important;
+            font-size: 11px !important;
         }
 
         div[data-baseweb="select"] * {
-            font-size: 12px !important;
+            font-size: 11px !important;
         }
 
 
         /* =========================================================
-           ETIQUETAS
+           ETIQUETAS DE LOS CAMPOS
            ========================================================= */
 
         [data-testid="stWidgetLabel"] p {
             font-size: 12px !important;
-            margin-bottom: 1px !important;
-            line-height: 1.1 !important;
+            margin-bottom: 2px !important;
         }
 
         label {
@@ -136,23 +135,14 @@ st.markdown(
 
 
         /* =========================================================
-           MULTISELECT — OPCIONES SELECCIONADAS
+           MULTISELECT
            ========================================================= */
 
         [data-baseweb="tag"] {
-            font-size: 11px !important;
+            font-size: 10px !important;
             padding: 0px 4px !important;
             margin: 0px 1px !important;
-            line-height: 18px !important;
-        }
-
-
-        /* =========================================================
-           TEXT INPUT
-           ========================================================= */
-
-        [data-testid="stTextInput"] {
-            margin-bottom: 0px !important;
+            line-height: 17px !important;
         }
 
 
@@ -160,51 +150,33 @@ st.markdown(
            NUMBER INPUT
            ========================================================= */
 
-        [data-testid="stNumberInput"] {
-            margin-bottom: 0px !important;
-        }
-
         [data-testid="stNumberInput"] button {
-            min-height: 26px !important;
-            height: 26px !important;
-            width: 26px !important;
+            min-height: 22px !important;
+            height: 22px !important;
+            width: 22px !important;
         }
 
 
         /* =========================================================
-           DATE INPUT
-           ========================================================= */
-
-        [data-testid="stDateInput"] {
-            margin-bottom: 0px !important;
-        }
-
-
-        /* =========================================================
-           MULTISELECT
-           ========================================================= */
-
-        [data-testid="stMultiSelect"] {
-            margin-bottom: 0px !important;
-        }
-
-
-        /* =========================================================
-           ESPACIO ENTRE ELEMENTOS
+           ESPACIOS ENTRE ELEMENTOS
+           
+           NO SE REDUCEN
            ========================================================= */
 
         [data-testid="stVerticalBlock"] {
-            gap: 0.3rem;
+            gap: 0.5rem;
         }
 
 
         /* =========================================================
            COLUMNAS
+           
+           Mantenemos separación normal
            ========================================================= */
 
         [data-testid="column"] {
-            padding-left: 0.2rem;
-            padding-right: 0.2rem;
+            padding-left: 0.3rem;
+            padding-right: 0.3rem;
         }
 
 
@@ -213,17 +185,19 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stCheckbox"] label {
-            font-size: 11px !important;
+            font-size: 12px !important;
         }
 
 
         /* =========================================================
            SLIDER
+           
+           No modificamos su separación
            ========================================================= */
 
         [data-testid="stSlider"] {
-            margin-top: -6px;
-            margin-bottom: -6px;
+            margin-top: 0px;
+            margin-bottom: 0px;
         }
 
 
@@ -232,18 +206,19 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stAlert"] {
-            font-size: 12px !important;
-            padding: 0.4rem 0.6rem !important;
+            font-size: 13px !important;
         }
 
 
         /* =========================================================
            CONTENEDOR PRINCIPAL
+           
+           Mantiene el espaciado
            ========================================================= */
 
         .block-container {
-            padding-top: 1.2rem;
-            padding-bottom: 1.2rem;
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
         }
 
     </style>
