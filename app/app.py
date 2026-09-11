@@ -97,8 +97,44 @@ st.markdown(
 
 
         /* =========================================================
+           CAMPOS DEL FORMULARIO
+           ========================================================= */
+
+        /* Altura de inputs */
+        div[data-baseweb="input"] {
+            min-height: 32px !important;
+            height: 32px !important;
+        }
+
+        /* Altura de select y multiselect */
+        div[data-baseweb="select"] {
+            min-height: 32px !important;
+        }
+
+
+        /* =========================================================
+           TEXTO DENTRO DE LOS CAMPOS
+           ========================================================= */
+
+        div[data-baseweb="input"] input {
+            font-size: 13px !important;
+            padding-top: 4px !important;
+            padding-bottom: 4px !important;
+        }
+
+        div[data-baseweb="select"] * {
+            font-size: 13px !important;
+        }
+
+
+        /* =========================================================
            ETIQUETAS DE LOS CAMPOS
            ========================================================= */
+
+        [data-testid="stWidgetLabel"] p {
+            font-size: 13px !important;
+            margin-bottom: 2px !important;
+        }
 
         label {
             font-size: 13px !important;
@@ -106,21 +142,65 @@ st.markdown(
 
 
         /* =========================================================
-           CAMPOS DE TEXTO
+           MULTISELECT
            ========================================================= */
 
-        input {
-            font-size: 13px !important;
+        /* Etiquetas seleccionadas dentro del multiselect */
+        [data-baseweb="tag"] {
+            font-size: 12px !important;
+            padding: 1px 5px !important;
+            margin: 1px 2px !important;
         }
 
 
         /* =========================================================
-           ESPACIADO GENERAL
+           TEXT INPUT
            ========================================================= */
 
-        .block-container {
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
+        [data-testid="stTextInput"] {
+            margin-bottom: 2px !important;
+        }
+
+
+        /* =========================================================
+           NUMBER INPUT
+           ========================================================= */
+
+        [data-testid="stNumberInput"] {
+            margin-bottom: 2px !important;
+        }
+
+        /* Botones + y - del number input */
+        [data-testid="stNumberInput"] button {
+            min-height: 30px !important;
+            height: 30px !important;
+        }
+
+
+        /* =========================================================
+           DATE INPUT
+           ========================================================= */
+
+        [data-testid="stDateInput"] {
+            margin-bottom: 2px !important;
+        }
+
+
+        /* =========================================================
+           MULTISELECT
+           ========================================================= */
+
+        [data-testid="stMultiSelect"] {
+            margin-bottom: 2px !important;
+        }
+
+
+        /* =========================================================
+           ESPACIADO GENERAL ENTRE ELEMENTOS
+           ========================================================= */
+
+        [data-testid="stVerticalBlock"] {
+            gap: 0.5rem;
         }
 
 
@@ -135,18 +215,46 @@ st.markdown(
 
 
         /* =========================================================
-           ALERTAS / MENSAJES
+           CHECKBOX
+           ========================================================= */
+
+        [data-testid="stCheckbox"] label {
+            font-size: 12px !important;
+        }
+
+
+        /* =========================================================
+           SLIDER
+           ========================================================= */
+
+        [data-testid="stSlider"] {
+            margin-top: -4px;
+            margin-bottom: -4px;
+        }
+
+
+        /* =========================================================
+           MENSAJES / ALERTAS
            ========================================================= */
 
         [data-testid="stAlert"] {
             font-size: 13px !important;
         }
 
+
+        /* =========================================================
+           CONTENEDOR PRINCIPAL
+           ========================================================= */
+
+        .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+
     </style>
     """,
     unsafe_allow_html=True,
 )
-
 # 1. Conexión a Supabase y modelo de IA
 supabase = obtener_cliente()
 
@@ -164,10 +272,10 @@ if "mensaje_estado" not in st.session_state:
 
 # 2. Interfaz Visual y Gestión de Estado
 st.title("💶 Buscador inteligente de Subvenciones")
-st.caption(
-    "Datos oficiales de la BDNS (Base de Datos Nacional de Subvenciones) "
-    "y del BOE (Boletín Oficial del Estado)."
-)
+#st.caption(
+#    "Datos oficiales de la BDNS (Base de Datos Nacional de Subvenciones) "
+#    "y del BOE (Boletín Oficial del Estado)."
+#)
 
 
 def limpiar_campos():
