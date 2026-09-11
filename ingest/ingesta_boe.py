@@ -231,7 +231,10 @@ def procesar_fecha(fecha_aaaammdd: str) -> list:
 
     items = extraer_items_relevantes(raiz_xml)
     print(f"  Anuncios de ayudas/subvenciones encontrados: {len(items)}", flush=True)
-    return [normalizar_item_boe(item) for item in items]
+    return [
+        normalizar_item_boe(item, fecha_aaaammdd)
+        for item in items
+    ]
 
 
 def ejecutar_sincronizacion(fecha: str = None):
