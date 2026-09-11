@@ -28,19 +28,18 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        /* Reducir el tamaño de toda la interfaz */
-        .stApp {
-            transform: scale(0.80);
-            transform-origin: top center;
-            width: 125%; /* 100 / 0.8 para compensar el ancho */
-            margin: 0 auto;
+        /* Reducir ligeramente los espaciados y textos generales de forma limpia */
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            max-width: 95%;
         }
         div.stButton > button:first-child {
             background-color: #0066cc;
             color: white;
             font-weight: bold;
-            font-size: 16px;
-            padding: 0.6rem 1.2rem;
+            font-size: 14px;
+            padding: 0.5rem 1rem;
             border-radius: 8px;
             border: none;
             width: 100%;
@@ -56,16 +55,9 @@ st.markdown(
             background-color: #f8f9fa;
             border: 1px solid #e0e0e0;
             border-radius: 10px;
-            padding: 20px;
-            margin-top: 15px;
-            margin-bottom: 15px;
-        }
-        .alignment-fix {
-            display: flex;
-            align-items: center;
-            height: 100%;
-            font-size: 15px;
-            color: #31333F;
+            padding: 15px;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
     </style>
     """,
