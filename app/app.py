@@ -84,68 +84,6 @@ st.markdown(
 
 
         /* =========================================================
-           CAMPOS DEL FORMULARIO
-           ========================================================= */
-        
-        /* Text input, number input */
-        div[data-baseweb="input"] {
-            min-height: 22px !important;
-            height: 22px !important;
-        }
-        
-        /* Select y multiselect */
-        div[data-baseweb="select"] {
-            min-height: 22px !important;
-            height: 22px !important;
-        }
-        
-        /* Texto dentro de los campos */
-        div[data-baseweb="input"] input {
-            font-size: 11px !important;
-            padding: 0 5px !important;
-            height: 20px !important;
-        }
-        
-        /* Texto de los desplegables */
-        div[data-baseweb="select"] * {
-            font-size: 11px !important;
-        }
-        
-        /* Opciones seleccionadas del multiselect */
-        [data-baseweb="tag"] {
-            font-size: 10px !important;
-            padding: 0 3px !important;
-            margin: 0 1px !important;
-            line-height: 16px !important;
-        }
-        
-        /* Botones +/- de los campos numéricos */
-        [data-testid="stNumberInput"] button {
-            min-height: 20px !important;
-            height: 20px !important;
-            width: 20px !important;
-        }
-
-        /* =========================================================
-           TEXTO DENTRO DE LOS CAMPOS
-           ========================================================= */
-
-        div[data-baseweb="input"] input {
-            font-size: 11px !important;
-            padding: 1px 6px !important;
-            height: 22px !important;
-        }
-
-        div[data-baseweb="select"] {
-            font-size: 11px !important;
-        }
-
-        div[data-baseweb="select"] * {
-            font-size: 11px !important;
-        }
-
-
-        /* =========================================================
            ETIQUETAS DE LOS CAMPOS
            ========================================================= */
 
@@ -160,19 +98,50 @@ st.markdown(
 
 
         /* =========================================================
-           MULTISELECT
+           INPUTS DE TEXTO Y NUMBER INPUT
+           ========================================================= */
+
+        div[data-baseweb="input"] {
+            min-height: 22px !important;
+            height: 22px !important;
+        }
+
+        div[data-baseweb="input"] input {
+            height: 20px !important;
+            min-height: 20px !important;
+            padding: 1px 6px !important;
+            font-size: 11px !important;
+        }
+
+
+        /* =========================================================
+           SELECT Y MULTISELECT
+           ========================================================= */
+
+        div[data-baseweb="select"] {
+            min-height: 22px !important;
+            font-size: 11px !important;
+        }
+
+        div[data-baseweb="select"] * {
+            font-size: 11px !important;
+        }
+
+
+        /* =========================================================
+           ETIQUETAS SELECCIONADAS DEL MULTISELECT
            ========================================================= */
 
         [data-baseweb="tag"] {
             font-size: 10px !important;
-            padding: 0px 4px !important;
-            margin: 0px 1px !important;
+            padding: 0 4px !important;
+            margin: 0 1px !important;
             line-height: 17px !important;
         }
 
 
         /* =========================================================
-           NUMBER INPUT
+           BOTONES +/- DE NUMBER INPUT
            ========================================================= */
 
         [data-testid="stNumberInput"] button {
@@ -183,9 +152,24 @@ st.markdown(
 
 
         /* =========================================================
-           ESPACIOS ENTRE ELEMENTOS
-           
-           NO SE REDUCEN
+           DATE INPUT
+           ========================================================= */
+
+        [data-testid="stDateInput"] [data-baseweb="input"] {
+            min-height: 22px !important;
+            height: 22px !important;
+        }
+
+        [data-testid="stDateInput"] input {
+            height: 20px !important;
+            min-height: 20px !important;
+            padding: 1px 6px !important;
+            font-size: 11px !important;
+        }
+
+
+        /* =========================================================
+           ESPACIADO ENTRE ELEMENTOS
            ========================================================= */
 
         [data-testid="stVerticalBlock"] {
@@ -194,9 +178,7 @@ st.markdown(
 
 
         /* =========================================================
-           COLUMNAS
-           
-           Mantenemos separación normal
+           ESPACIADO DE COLUMNAS
            ========================================================= */
 
         [data-testid="column"] {
@@ -216,8 +198,6 @@ st.markdown(
 
         /* =========================================================
            SLIDER
-           
-           No modificamos su separación
            ========================================================= */
 
         [data-testid="stSlider"] {
@@ -237,8 +217,6 @@ st.markdown(
 
         /* =========================================================
            CONTENEDOR PRINCIPAL
-           
-           Mantiene el espaciado
            ========================================================= */
 
         .block-container {
@@ -248,7 +226,7 @@ st.markdown(
 
     </style>
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
 )
 # 1. Conexión a Supabase y modelo de IA
 supabase = obtener_cliente()
