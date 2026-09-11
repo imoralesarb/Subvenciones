@@ -501,7 +501,7 @@ def construir_tabla_final(df: pd.DataFrame) -> pd.DataFrame:
                 if importe_valor is not None and not pd.isna(importe_valor)
                 else "No especificado"
             ),
-            "Fuente": row.fuente_origen,
+            #"Fuente": row.fuente_origen,
             "Enlace": row.url_oficial,
             "Es Novedad": getattr(row, "es_novedad", False),
             "Es Actualizada": getattr(row, "es_actualizada", False),
