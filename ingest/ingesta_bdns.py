@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import time
 import requests
 
@@ -14,7 +15,7 @@ BDNS_BUSQUEDA = f"{BDNS_BASE}/convocatorias/busqueda"
 
 TAMANO_PAGINA = 50
 PAUSA_ENTRE_PAGINAS_SEGUNDOS = 1.0
-MAX_PAGINAS_POR_EJECUCION = 40
+MAX_PAGINAS_POR_EJECUCION = 2  # Solo necesitamos la(s) primera(s) página(s) para lo reciente
 LOTE_ENVIO_SUPABASE = 25
 
 FUENTE = "BDNS"
@@ -30,7 +31,7 @@ def obtener_pagina_convocatorias(pagina: int, tamano: int = TAMANO_PAGINA) -> di
     parametros = {
         "page": pagina,
         "pageSize": tamano,
-        "order": "fechaRecepcion",  # Orden crítico por fecha para traer lo reciente primero
+        "order": "fechaRecepcion",
         "direccion": "desc",
         "vpd": "GE",
     }
@@ -40,7 +41,6 @@ def obtener_pagina_convocatorias(pagina: int, tamano: int = TAMANO_PAGINA) -> di
 
 
 def obtener_detalle_convocatoria(id_interno: int) -> dict:
-    """Consulta el endpoint de detalle individual para obtener el campo 'abierto' actualizado."""
     url_detalle = f"{BDNS_BASE}/convocatorias/{id_interno}"
     try:
         resp = requests.get(url_detalle, timeout=15)
@@ -151,12 +151,18 @@ def preparar_lote_para_subir(convocatorias_normalizadas: list, registros_existen
 def ejecutar_sincronizacion():
     supabase = obtener_cliente_supabase()
 
+    # Fechas de hoy y ayer en formato 'YYYY-MM-DD'
+    hoy = datetime.now().date()
+    ayer = hoy - timedelta(days=1)
+    fechas_validas = {hoy.isoformat(), ayer.isoformat()}
+
+    print(f"Iniciando sincronización BDNS (filtrando solo para hoy {hoy} y ayer {ayer})...", flush=True)
+
     pagina = 0
     convocatorias_normalizadas = []
 
-    print(f"Iniciando sincronización BDNS (filtrando septiembre de 2026 y abiertas)...")
-
     while pagina < MAX_PAGINAS_POR_EJECUCION:
+        print(f"Consultando página {pagina}...", flush=True)
         datos = obtener_pagina_convocatorias(pagina)
         contenido = datos.get("content", [])
 
@@ -165,27 +171,27 @@ def ejecutar_sincronizacion():
 
         for item in contenido:
             fecha_recepcion = item.get("fechaRecepcion") or ""
+            # Cortamos a los primeros 10 caracteres (YYYY-MM-DD) por si trae hora
+            fecha_corta = fecha_recepcion[:10]
 
-            # Filtro estricto para septiembre de 2026
-            if fecha_recepcion.startswith("2026-09"):
+            if fecha_corta in fechas_validas:
                 id_interno = item.get("id")
-                
-                # Consultamos el detalle individual para asegurar el campo 'abierto'
                 detalle = obtener_detalle_convocatoria(id_interno) if id_interno else {}
                 abierto = detalle.get("abierto", False)
 
                 if abierto:
                     combinado = {**item, **detalle}
                     convocatorias_normalizadas.append(normalizar_convocatoria(combinado))
+                    print(f"-> Añadida convocatoria ID {id_interno} ({fecha_corta})", flush=True)
 
         pagina += 1
         time.sleep(PAUSA_ENTRE_PAGINAS_SEGUNDOS)
 
     if not convocatorias_normalizadas:
-        print("No se han encontrado convocatorias que cumplan los filtros (septiembre y abiertas).")
+        print("No se han encontrado convocatorias nuevas para hoy o ayer que estén abiertas.", flush=True)
         return
 
-    print(f"Procesando {len(convocatorias_normalizadas)} convocatorias filtradas...")
+    print(f"Procesando {len(convocatorias_normalizadas)} convocatorias filtradas...", flush=True)
     registros_existentes = obtener_registros_existentes(
         supabase,
         cols=("id", "codigo_unico") + CAMPOS_COMPARABLES,
@@ -195,11 +201,11 @@ def ejecutar_sincronizacion():
     lote_final = preparar_lote_para_subir(convocatorias_normalizadas, registros_existentes)
 
     if not lote_final:
-        print("No hay cambios nuevos que sincronizar en este lote.")
+        print("No hay cambios nuevos que sincronizar en este lote.", flush=True)
         return
 
     subidas = subir_en_lotes(supabase, lote_final, tamano_lote=LOTE_ENVIO_SUPABASE)
-    print(f"Sincronización completada: {subidas}/{len(lote_final)} registros subidos.")
+    print(f"Sincronización completada: {subidas}/{len(lote_final)} registros subidos.", flush=True)
 
 
 if __name__ == "__main__":
