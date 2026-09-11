@@ -25,98 +25,9 @@ st.set_page_config(
 )
 
 # --- ESTILOS CSS PERSONALIZADOS PARA DISEÑO Y RECUADROS ---
-# --- ESTILOS CSS PERSONALIZADOS ---
 st.markdown(
     """
     <style>
-
-        /* =========================================================
-           ESCALA GENERAL DE LA INTERFAZ
-           Aproximadamente un 20 % más compacta
-           ========================================================= */
-
-        /* Aprovechar más el ancho de la pantalla */
-        .block-container {
-            padding-top: 1.2rem;
-            padding-bottom: 1.2rem;
-            padding-left: 2rem;
-            padding-right: 2rem;
-            max-width: 100%;
-        }
-
-        /* Texto general */
-        html, body, [class*="css"] {
-            font-size: 13px;
-        }
-
-        /* =========================================================
-           TÍTULO Y TEXTOS
-           ========================================================= */
-
-        h1 {
-            font-size: 1.8rem !important;
-            margin-bottom: 0.3rem !important;
-        }
-
-        h2 {
-            font-size: 1.4rem !important;
-        }
-
-        h3 {
-            font-size: 1.15rem !important;
-            margin-top: 0.5rem !important;
-            margin-bottom: 0.4rem !important;
-        }
-
-        p {
-            font-size: 0.85rem;
-        }
-
-        /* Caption */
-        [data-testid="stCaptionContainer"] {
-            font-size: 0.75rem;
-        }
-
-        /* =========================================================
-           INPUTS, SELECTBOX, MULTISELECT, DATE, NUMBER
-           ========================================================= */
-
-        div[data-baseweb="input"] {
-            min-height: 34px !important;
-        }
-
-        div[data-baseweb="select"] {
-            min-height: 34px !important;
-        }
-
-        input {
-            font-size: 0.82rem !important;
-        }
-
-        textarea {
-            font-size: 0.82rem !important;
-        }
-
-        label {
-            font-size: 0.78rem !important;
-        }
-
-        /* Reducir altura de los inputs */
-        [data-testid="stTextInput"] > div,
-        [data-testid="stNumberInput"] > div,
-        [data-testid="stDateInput"] > div,
-        [data-testid="stMultiSelect"] > div {
-            min-height: 34px !important;
-        }
-
-        /* =========================================================
-           MULTISELECT
-           ========================================================= */
-
-        [data-baseweb="tag"] {
-            font-size: 0.72rem !important;
-            padding: 1px 5px !important;
-        }
 
         /* =========================================================
            BOTONES
@@ -126,101 +37,109 @@ st.markdown(
             background-color: #0066cc;
             color: white;
             font-weight: bold;
-            font-size: 12px;
-            padding: 0.35rem 0.7rem;
-            min-height: 34px;
-            border-radius: 6px;
+            font-size: 13px;
+            padding: 0.48rem 0.95rem;
+            border-radius: 7px;
             border: none;
             width: 100%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
         div.stButton > button:first-child:hover {
             background-color: #0052a3;
-            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 5px 7px rgba(0, 0, 0, 0.15);
             color: white;
         }
 
-        /* Botón de descarga */
-        div[data-testid="stDownloadButton"] button {
-            font-size: 12px !important;
-            padding: 0.35rem 0.7rem !important;
-            min-height: 34px !important;
-        }
 
         /* =========================================================
-           CHECKBOX
-           ========================================================= */
-
-        [data-testid="stCheckbox"] label {
-            font-size: 0.75rem !important;
-        }
-
-        [data-testid="stCheckbox"] {
-            transform: scale(0.9);
-            transform-origin: left center;
-        }
-
-        /* =========================================================
-           SLIDER
-           ========================================================= */
-
-        [data-testid="stSlider"] {
-            margin-top: -5px;
-            margin-bottom: -5px;
-        }
-
-        /* =========================================================
-           ESPACIADO ENTRE ELEMENTOS
-           ========================================================= */
-
-        [data-testid="stVerticalBlock"] {
-            gap: 0.45rem;
-        }
-
-        /* Reducir espacio de columnas */
-        [data-testid="column"] {
-            padding-left: 0.25rem;
-            padding-right: 0.25rem;
-        }
-
-        /* =========================================================
-           RECUADRO DE RESULTADOS
+           CONTENEDOR DE RESULTADOS
            ========================================================= */
 
         .results-container {
             background-color: #f8f9fa;
             border: 1px solid #e0e0e0;
-            border-radius: 7px;
-            padding: 9px;
-            margin-top: 6px;
-            margin-bottom: 6px;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
+
 
         /* =========================================================
-           DATAFRAME / TABLA
+           TEXTO DE ALINEACIÓN
            ========================================================= */
 
-        [data-testid="stDataFrame"] {
-            font-size: 11px !important;
+        .alignment-fix {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            font-size: 13px;
+            color: #31333F;
         }
+
+
+        /* =========================================================
+           TÍTULOS
+           ========================================================= */
+
+        h1 {
+            font-size: 1.9rem !important;
+            margin-bottom: 0.4rem !important;
+        }
+
+        h3 {
+            font-size: 1.2rem !important;
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.4rem !important;
+        }
+
+
+        /* =========================================================
+           ETIQUETAS DE LOS CAMPOS
+           ========================================================= */
+
+        label {
+            font-size: 13px !important;
+        }
+
+
+        /* =========================================================
+           CAMPOS DE TEXTO
+           ========================================================= */
+
+        input {
+            font-size: 13px !important;
+        }
+
+
+        /* =========================================================
+           ESPACIADO GENERAL
+           ========================================================= */
+
+        .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+
+
+        /* =========================================================
+           COLUMNAS
+           ========================================================= */
+
+        [data-testid="column"] {
+            padding-left: 0.3rem;
+            padding-right: 0.3rem;
+        }
+
 
         /* =========================================================
            ALERTAS / MENSAJES
            ========================================================= */
 
         [data-testid="stAlert"] {
-            font-size: 0.8rem !important;
-            padding: 0.5rem 0.7rem !important;
-        }
-
-        /* =========================================================
-           CAPA SUPERIOR / MENÚ
-           ========================================================= */
-
-        header {
-            height: 2.5rem;
+            font-size: 13px !important;
         }
 
     </style>
