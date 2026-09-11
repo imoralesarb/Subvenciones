@@ -25,9 +25,14 @@ st.set_page_config(
 )
 
 # --- ESTILOS CSS PERSONALIZADOS PARA DISEÑO Y RECUADROS ---
+# --- ESTILOS CSS PERSONALIZADOS PARA DISEÑO Y RECUADROS ---
 st.markdown(
     """
     <style>
+        /* Reducir el tamaño de toda la interfaz */
+        .stApp {
+            zoom: 0.90;
+        }
         div.stButton > button:first-child {
             background-color: #0066cc;
             color: white;
@@ -45,7 +50,6 @@ st.markdown(
             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
             color: white;
         }
-        /* Contenedor con borde elegante para agrupar los controles de resultados */
         .results-container {
             background-color: #f8f9fa;
             border: 1px solid #e0e0e0;
