@@ -30,7 +30,10 @@ st.markdown(
     <style>
         /* Reducir el tamaño de toda la interfaz */
         .stApp {
-            zoom: 0.75;
+            transform: scale(0.80);
+            transform-origin: top center;
+            width: 125%; /* 100 / 0.8 para compensar el ancho */
+            margin: 0 auto;
         }
         div.stButton > button:first-child {
             background-color: #0066cc;
