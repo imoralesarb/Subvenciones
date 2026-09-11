@@ -122,12 +122,13 @@ def extraer_items_relevantes(raiz_xml) -> list:
 # ------------------------------------------------------------------
 # Normalización al esquema de la tabla `subvenciones`
 # ------------------------------------------------------------------
-def normalizar_item_boe(item: dict) -> dict:
+def normalizar_item_boe(item: dict, fecha_aaaammdd: str) -> dict:
     coincidencia_bdns = PATRON_NUMERO_BDNS.search(item["titulo"])
     url = item["url_html"] or item["url_pdf"]
 
     codigo_unico = (
-        f"BDNS-{coincidencia_bdns.group(1)}" if coincidencia_bdns
+        f"BDNS-{coincidencia_bdns.group(1)}"
+        if coincidencia_bdns
         else f"BOE-{item['identificador_boe']}"
     )
 
@@ -143,10 +144,14 @@ def normalizar_item_boe(item: dict) -> dict:
         "url_oficial": url,
         "url_boe": url,
         "organismo": item["departamento"],
-        # Ámbito y CCAA no siempre son deducibles del sumario; si la BDNS
-        # ya había creado el registro, sus valores se conservan tal cual
-        # (ver preparar_operaciones: para registros existentes solo se
-        # fusiona fuente_origen y url_boe, nunca se pisan estos campos).
+
+        # Fecha en la que aparece el anuncio en el BOE
+        "fecha_publicacion": (
+            f"{fecha_aaaammdd[:4]}-"
+            f"{fecha_aaaammdd[4:6]}-"
+            f"{fecha_aaaammdd[6:8]}"
+        ),
+
         "ambito": "Nacional",
         "ccaa": [],
     }
