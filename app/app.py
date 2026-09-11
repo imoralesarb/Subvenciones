@@ -364,7 +364,7 @@ with col_resultados:
 
         with col_res_texto:
             st.markdown(
-                f'<div style="font-size: 8px; padding-top: 3px; color: {color_texto};">'
+                f'<div style="font-size: 12px; padding-top: 3px; color: {color_texto};">'
                 "Seleccionar número de resultados:"
                 "</div>",
                 unsafe_allow_html=True,
