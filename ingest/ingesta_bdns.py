@@ -30,7 +30,7 @@ def obtener_pagina_convocatorias(pagina: int, tamano: int = TAMANO_PAGINA) -> di
     parametros = {
         "page": pagina,
         "pageSize": tamano,
-        "order": "numeroConvocatoria",
+        "order": "fechaRecepcion",  # Orden crítico por fecha para traer lo reciente primero
         "direccion": "desc",
         "vpd": "GE",
     }
@@ -39,8 +39,20 @@ def obtener_pagina_convocatorias(pagina: int, tamano: int = TAMANO_PAGINA) -> di
     return respuesta.json()
 
 
+def obtener_detalle_convocatoria(id_interno: int) -> dict:
+    """Consulta el endpoint de detalle individual para obtener el campo 'abierto' actualizado."""
+    url_detalle = f"{BDNS_BASE}/convocatorias/{id_interno}"
+    try:
+        resp = requests.get(url_detalle, timeout=15)
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception:
+        pass
+    return {}
+
+
 def normalizar_convocatoria(item_bdns: dict) -> dict:
-    numero = item_bdns.get("numeroConvocatoria")
+    numero = item_bdns.get("codigoBDNS") or item_bdns.get("numeroConvocatoria")
     ambito_raw = (item_bdns.get("ambito") or "").upper()
     titulo = (item_bdns.get("titulo") or item_bdns.get("descripcion") or "").strip()
     descripcion = item_bdns.get("descripcion") or ""
@@ -91,7 +103,7 @@ def normalizar_convocatoria(item_bdns: dict) -> dict:
         "bases_reguladoras": item_bdns.get("descripcionBasesReguladoras"),
         "url_bases_reguladoras": item_bdns.get("urlBasesReguladoras"),
         "tipos_beneficiarios": ", ".join(beneficiarios) if beneficiarios else None,
-        "sectores_economicos": ", ".join(sectores) if sectores else None,
+        "sectores_economicos": ", ".join(sectores) if secteurs else None,
         "regiones_impacto": ", ".join(regiones) if regiones else None,
         "empleados_min": None,
         "empleados_max": None,
@@ -142,7 +154,7 @@ def ejecutar_sincronizacion():
     pagina = 0
     convocatorias_normalizadas = []
 
-    print(f"Iniciando sincronización BDNS (filtrando septiembre y abiertas)...")
+    print(f"Iniciando sincronización BDNS (filtrando septiembre de 2026 y abiertas)...")
 
     while pagina < MAX_PAGINAS_POR_EJECUCION:
         datos = obtener_pagina_convocatorias(pagina)
@@ -153,13 +165,18 @@ def ejecutar_sincronizacion():
 
         for item in contenido:
             fecha_recepcion = item.get("fechaRecepcion") or ""
-            abierto = item.get("abierto", False)
 
-            # Filtro: Publicadas en septiembre (ej. formato 'YYYY-09-XX') y estado abierto
-            es_septiembre = "-09-" in fecha_recepcion or fecha_recepcion.startswith("2026-09")
-            
-            if es_septiembre and abierto:
-                convocatorias_normalizadas.append(normalizar_convocatoria(item))
+            # Filtro estricto para septiembre de 2026
+            if fecha_recepcion.startswith("2026-09"):
+                id_interno = item.get("id")
+                
+                # Consultamos el detalle individual para asegurar el campo 'abierto'
+                detalle = obtener_detalle_convocatoria(id_interno) if id_interno else {}
+                abierto = detalle.get("abierto", False)
+
+                if abierto:
+                    combinado = {**item, **detalle}
+                    convocatorias_normalizadas.append(normalizar_convocatoria(combinado))
 
         pagina += 1
         time.sleep(PAUSA_ENTRE_PAGINAS_SEGUNDOS)
