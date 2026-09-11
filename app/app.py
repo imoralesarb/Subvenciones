@@ -25,13 +25,12 @@ st.set_page_config(
 )
 
 # --- ESTILOS CSS PERSONALIZADOS PARA DISEÑO Y RECUADROS ---
-# --- ESTILOS CSS PERSONALIZADOS PARA DISEÑO Y RECUADROS ---
 st.markdown(
     """
     <style>
         /* Reducir el tamaño de toda la interfaz */
         .stApp {
-            zoom: 0.90;
+            zoom: 0.75;
         }
         div.stButton > button:first-child {
             background-color: #0066cc;
