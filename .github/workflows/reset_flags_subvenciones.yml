@@ -1,0 +1,52 @@
+name: Reset flags subvenciones
+
+on:
+  schedule:
+    # Todos los días a las 00:00 UTC
+    - cron: "0 0 * * *"
+
+  # Permite ejecutarlo manualmente desde GitHub
+  workflow_dispatch:
+
+jobs:
+  reset-flags:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Instalar dependencias
+        run: |
+          pip install supabase
+
+      - name: Resetear flags
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          from supabase import create_client
+
+          SUPABASE_URL = os.environ["SUPABASE_URL"]
+          SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+
+          supabase = create_client(
+              SUPABASE_URL,
+              SUPABASE_SERVICE_KEY
+          )
+
+          print("🔄 Reseteando flags de subvenciones...")
+
+          respuesta = (
+              supabase
+              .table("subvenciones")
+              .update({
+                  "es_novedad": False,
+                  "es_actualizada": False
+              })
+              .neq("id", 0)
+              .execute()
+          )
+
+          print("✅ Flags reseteadas correctamente.")
+          print(respuesta)
+          PY
