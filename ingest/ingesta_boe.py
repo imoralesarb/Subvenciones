@@ -7,39 +7,43 @@ BDNS (ver ingesta_bdns.py): sirve para (a) enlazar cada convocatoria BDNS
 con su publicación normativa oficial y (b) detectar el mismo día anuncios
 que el BOE ya ha publicado pero que la BDNS todavía no ha indexado.
 
+Por defecto, procesa el sumario de HOY y de AYER (misma ventana que
+ingesta_bdns.py — ver DIAS_ATRAS), ya que el BOE a veces tarda en
+reflejar el día en curso según la hora a la que se ejecute el workflow.
+
 Documentación oficial:
   - https://www.boe.es/datosabiertos/api/boe/ (API de datos abiertos)
-  - "API para acceder a los sumarios del BOE" (PDF de especificación)
+  - "API para el acceso a los sumarios del BOE" (AEBOE, junio de 2024)
 
 Endpoint usado (sumario del día, en XML):
   GET https://www.boe.es/datosabiertos/api/boe/sumario/{AAAAMMDD}
   Accept: application/xml
 
-Estrategia:
-  1. Descarga el sumario de la fecha indicada (por defecto, hoy).
-  2. Recorre únicamente las secciones que contienen ayudas:
-       - Sección III  (Otras disposiciones -> bases reguladoras)
-       - Sección VB   (Otros anuncios oficiales -> extractos de convocatoria)
-  3. Filtra por patrón de texto en el título (extracto, convocatoria,
-     subvención, ayuda, beca, premio).
-  4. Si el texto incluye un número BDNS, se usa como clave `codigo_unico`
-     (BDNS-<numero>) para que el upsert FUSIONE este anuncio con el
-     registro que (normalmente) ya habrá creado ingesta_bdns.py, en vez de
-     machacar sus datos, ya mucho más completos, con los escasos datos
-     del sumario del BOE. Si no lo incluye, se usa el identificador propio
-     del BOE (BOE-<id>) como convocatoria "solo BOE" hasta que la BDNS la
-     indexe.
+Estructura real del XML (verificada contra la especificación oficial):
+
+    <seccion codigo="..." nombre="...">
+      <departamento codigo="..." nombre="...">
+        <epigrafe nombre="...">      <!-- opcional -->
+          <item>...</item>
+        </epigrafe>
+        <item>...</item>              <!-- o directamente aquí -->
+      </departamento>
+    </seccion>
+
+El nombre del departamento va en el ATRIBUTO `nombre` de <departamento>
+(no en su texto), y <item> puede colgar directamente de <departamento> o
+de un <epigrafe> intermedio — por eso se comprueban ambos casos.
 
 Variables de entorno requeridas: SUPABASE_URL, SUPABASE_SERVICE_KEY.
 Ejecución local:
-    python ingesta_boe.py            (usa la fecha de hoy)
-    python ingesta_boe.py 20260910   (fecha concreta, formato AAAAMMDD)
+    python ingesta_boe.py            (procesa ayer y hoy)
+    python ingesta_boe.py 20260910   (una fecha concreta, formato AAAAMMDD)
 Ejecución programada: ver .github/workflows/sincronizar_boe.yml
 """
 
 import re
 import sys
-from datetime import date
+from datetime import date, timedelta
 from xml.etree import ElementTree
 
 import requests
@@ -64,6 +68,7 @@ PATRON_PALABRAS_CLAVE = re.compile(
 # Un número de convocatoria BDNS suele citarse como "BDNS(Identif.): 123456".
 PATRON_NUMERO_BDNS = re.compile(r"BDNS[^\d]{0,15}(\d{5,9})", re.IGNORECASE)
 
+DIAS_ATRAS = 1  # por defecto se procesan ayer y hoy (misma ventana que la BDNS)
 COLUMNAS_EXISTENTES = ("id", "codigo_unico", "fuente_origen", "url_boe")
 
 
@@ -71,42 +76,24 @@ COLUMNAS_EXISTENTES = ("id", "codigo_unico", "fuente_origen", "url_boe")
 # Descarga y parseo del sumario del BOE
 # ------------------------------------------------------------------
 def obtener_sumario(fecha_aaaammdd: str):
-    """Descarga y parsea el sumario diario del BOE (XML)."""
     url = BOE_SUMARIO_URL.format(fecha=fecha_aaaammdd)
+    print(f"Descargando sumario BOE: {fecha_aaaammdd}", flush=True)
     respuesta = requests.get(url, headers={"Accept": "application/xml"}, timeout=30)
+    print(f"HTTP: {respuesta.status_code}", flush=True)
     respuesta.raise_for_status()
     return ElementTree.fromstring(respuesta.content)
 
 
 def extraer_items_relevantes(raiz_xml) -> list:
-    """
-    Recorre el sumario y devuelve los <item> de las secciones relevantes
-    (III y V-B) cuyo título contiene alguna palabra clave de ayuda.
-
-    Estructura real del XML, según la especificación oficial ("API para
-    el acceso a los sumarios del BOE", AEBOE, junio de 2024):
-
-        <seccion codigo="..." nombre="...">
-          <departamento codigo="..." nombre="...">
-            <epigrafe nombre="...">      <!-- opcional -->
-              <item>...</item>
-            </epigrafe>
-            <item>...</item>              <!-- o directamente aquí -->
-          </departamento>
-        </seccion>
-
-    El nombre del departamento va en el ATRIBUTO `nombre` de
-    <departamento> (no en su texto), y <item> puede colgar directamente
-    de <departamento> o de un <epigrafe> intermedio — por eso se
-    comprueban ambos casos explícitamente en vez de asumir un único nivel
-    de anidación.
-    """
+    """Recorre el sumario y devuelve los <item> relevantes (ver docstring del módulo)."""
     items_relevantes = []
 
     for seccion in raiz_xml.iter("seccion"):
         codigo_seccion = seccion.get("codigo", "")
         if codigo_seccion not in SECCIONES_RELEVANTES:
             continue
+
+        print(f"Procesando sección: {codigo_seccion}", flush=True)
 
         for departamento in seccion.findall("departamento"):
             nombre_departamento = departamento.get("nombre")
@@ -162,7 +149,6 @@ def normalizar_item_boe(item: dict) -> dict:
         # fusiona fuente_origen y url_boe, nunca se pisan estos campos).
         "ambito": "Nacional",
         "ccaa": [],
-        "categorias": [],
     }
 
 
@@ -186,8 +172,9 @@ def preparar_operaciones(items_normalizados: list, registros_existentes: dict):
 
         if existente is None:
             texto_completo = (
-                f"Título: {datos['titulo']}. Fuente: BOE. "
-                f"Organismo: {datos['organismo'] or 'No especificado'}."
+                f"Título: {datos['titulo']}\n"
+                f"Fuente: BOE\n"
+                f"Organismo: {datos['organismo'] or 'No especificado'}"
             )
             datos["texto_completo"] = texto_completo
             datos["embedding"] = generar_embedding(texto_completo)
@@ -219,32 +206,56 @@ def aplicar_actualizaciones(supabase, actualizaciones: list) -> int:
             supabase.table("subvenciones").update(cambio).eq("id", id_registro).execute()
             aplicadas += 1
         except Exception as error:
-            print(f"⚠️ Error enriqueciendo el registro {id_registro} con datos del BOE: {error}")
+            print(f"⚠️ Error enriqueciendo el registro {id_registro} con datos del BOE: {error}", flush=True)
     return aplicadas
 
 
 # ------------------------------------------------------------------
 # Ejecución principal
 # ------------------------------------------------------------------
-def ejecutar_sincronizacion(fecha: str = None):
-    fecha_aaaammdd = fecha or date.today().strftime("%Y%m%d")
-    print(f"Descargando sumario del BOE para {fecha_aaaammdd}...")
-
+def procesar_fecha(fecha_aaaammdd: str) -> list:
     try:
         raiz_xml = obtener_sumario(fecha_aaaammdd)
     except requests.HTTPError as error:
         # Es habitual que no haya BOE publicado en fines de semana/festivos.
-        print(f"No se pudo obtener el sumario ({error}). Puede que no haya BOE ese día.")
-        return
+        print(f"No se pudo obtener el sumario ({error}). Puede que no haya BOE ese día.", flush=True)
+        return []
+    except Exception as error:
+        print(f"Error procesando el sumario del {fecha_aaaammdd}: {error}", flush=True)
+        return []
 
     items = extraer_items_relevantes(raiz_xml)
-    if not items:
-        print("No se han encontrado anuncios de ayudas en el sumario de hoy.")
+    print(f"  Anuncios de ayudas/subvenciones encontrados: {len(items)}", flush=True)
+    return [normalizar_item_boe(item) for item in items]
+
+
+def ejecutar_sincronizacion(fecha: str = None):
+    if fecha:
+        fechas_a_procesar = [fecha]
+    else:
+        hoy = date.today()
+        fechas_a_procesar = [
+            (hoy - timedelta(days=dias)).strftime("%Y%m%d")
+            for dias in range(DIAS_ATRAS, -1, -1)  # de más antigua a más reciente: ayer, hoy
+        ]
+
+    print("=" * 100, flush=True)
+    print("SINCRONIZACIÓN DE SUBVENCIONES — BOE", flush=True)
+    print("=" * 100, flush=True)
+    print(f"Fechas a procesar: {', '.join(fechas_a_procesar)}", flush=True)
+    print("=" * 100, flush=True)
+
+    items_normalizados = []
+    for fecha_aaaammdd in fechas_a_procesar:
+        items_normalizados.extend(procesar_fecha(fecha_aaaammdd))
+
+    if not items_normalizados:
+        print("\nNo se han encontrado anuncios de ayudas en el periodo.", flush=True)
         return
 
-    items_normalizados = [normalizar_item_boe(item) for item in items]
-
     supabase = obtener_cliente_supabase()
+
+    print(f"\nComparando {len(items_normalizados)} anuncios con lo ya existente en Supabase...", flush=True)
     registros_existentes = obtener_registros_existentes(
         supabase,
         columnas=COLUMNAS_EXISTENTES,
@@ -257,8 +268,9 @@ def ejecutar_sincronizacion(fecha: str = None):
     aplicadas = aplicar_actualizaciones(supabase, actualizaciones) if actualizaciones else 0
 
     print(
-        f"Sincronización BOE completada: {subidos} convocatorias nuevas, "
-        f"{aplicadas} enriquecidas con referencia legal del BOE."
+        f"\nSincronización BOE completada: {subidos} convocatorias nuevas, "
+        f"{aplicadas} enriquecidas con referencia legal del BOE.",
+        flush=True,
     )
 
 
