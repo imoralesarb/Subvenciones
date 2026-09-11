@@ -1,1 +1,7 @@
 streamlit
+pandas
+supabase
+sentence-transformers
+numpy
+requests
+python-dotenv
