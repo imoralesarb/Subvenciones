@@ -1,99 +1,100 @@
 """
 search.py
 ---------
-Lógica de búsqueda de subvenciones. Combina búsqueda semántica (embeddings
-+ pgvector) con filtros estructurados (categoría, ámbito, CCAA, importe,
-plazo vigente, fuente, novedades).
+Funciones de acceso a datos para el buscador de subvenciones.
 
-Todo el filtrado ocurre dentro de Supabase/Postgres, a través de la
-función `buscar_subvenciones` (ver sql/schema.sql). Esto es deliberado:
-resolver los filtros en la base de datos, en vez de traer todas las filas
-a un DataFrame y filtrar con pandas, es lo que mantiene la app rápida
-cuando la tabla crece a decenas de miles de convocatorias.
+Sigue el mismo patrón que `app.py` del proyecto de Licitaciones de
+referencia: la función RPC `buscar_subvenciones` de Supabase solo hace
+búsqueda semántica (embeddings); el resto de filtros estructurados
+(fuente, ámbito, CCAA, importe, beneficiarios, fechas) se aplican con
+pandas en app.py, tanto sobre el resultado de la búsqueda semántica como
+sobre un listado plano cuando no hay texto de búsqueda.
 """
-from typing import Optional
-
 import pandas as pd
+import streamlit as st
 from sentence_transformers import SentenceTransformer
 from supabase import Client
 
+COLUMNAS_LISTADO = (
+    "codigo_unico, titulo, organismo, fuente_origen, ambito, ccaa, "
+    "beneficiarios, presupuesto_total, url_oficial, fecha_publicacion, "
+    "fecha_fin_solicitud, es_novedad, es_actualizada"
+)
 
-def buscar_subvenciones(
+TAMANO_LOTE_LISTADO = 1000
+
+
+def buscar_semantica(
     supabase: Client,
     encoder: SentenceTransformer,
-    texto: str = "",
-    categorias: Optional[list] = None,
-    ambito: Optional[str] = None,
-    ccaa: Optional[list] = None,
-    fuente: Optional[str] = None,
-    importe_min: Optional[float] = None,
-    importe_max: Optional[float] = None,
-    solo_vigentes: bool = True,
-    solo_novedades: bool = False,
+    texto: str,
     match_threshold: float = 0.2,
-    limite: int = 300,
-) -> pd.DataFrame:
+    match_count: int = 999999,
+) -> list:
+    """Búsqueda por similitud semántica vía la función RPC `buscar_subvenciones`."""
+    query_con_prefijo = f"query: {texto.strip()}"
+    vector_query = encoder.encode(query_con_prefijo).tolist()
+
+    respuesta = supabase.rpc(
+        "buscar_subvenciones",
+        {
+            "query_embedding": vector_query,
+            "match_threshold": match_threshold,
+            "match_count": match_count,
+        },
+    ).execute()
+    return respuesta.data or []
+
+
+def _listar_paginado(supabase: Client, solo_novedades: bool) -> list:
+    """Trae toda la tabla (o solo novedades/actualizaciones) en lotes de 1000 filas."""
+    resultados = []
+    inicio = 0
+
+    while True:
+        consulta = supabase.table("subvenciones").select(COLUMNAS_LISTADO)
+        if solo_novedades:
+            consulta = consulta.or_("es_novedad.eq.true,es_actualizada.eq.true")
+        else:
+            consulta = consulta.order("fecha_publicacion", desc=True)
+
+        respuesta = consulta.range(inicio, inicio + TAMANO_LOTE_LISTADO - 1).execute()
+        filas = respuesta.data
+
+        if not filas:
+            break
+        resultados.extend(filas)
+        if len(filas) < TAMANO_LOTE_LISTADO:
+            break
+        inicio += TAMANO_LOTE_LISTADO
+
+    return resultados
+
+
+def listar_todas(supabase: Client) -> list:
+    return _listar_paginado(supabase, solo_novedades=False)
+
+
+def listar_novedades(supabase: Client) -> list:
+    return _listar_paginado(supabase, solo_novedades=True)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def obtener_opciones_filtro(_supabase: Client) -> tuple:
     """
-    Ejecuta la búsqueda contra la RPC `buscar_subvenciones` de Supabase.
+    Calcula las opciones de los desplegables de Ámbito y CCAA a partir de
+    los valores realmente presentes en la tabla (no hay un vocabulario
+    cerrado documentado por la BDNS). Cacheado 1h para no repetir la
+    consulta en cada interacción del usuario.
 
-    Si `texto` no está vacío, se calcula su embedding con el prefijo
-    'query: ' (obligatorio con los modelos de la familia E5 para obtener
-    buena calidad de recuperación) y los resultados se ordenan por
-    similitud semántica. Si está vacío, se listan/filtran las
-    convocatorias ordenadas por fecha de publicación.
+    (El parámetro se llama `_supabase`, con guion bajo, porque los
+    objetos cliente no son "hasheables" y Streamlit debe ignorarlos al
+    decidir si reutiliza la caché.)
     """
-    query_embedding = None
-    texto = (texto or "").strip()
-    if texto:
-        query_embedding = encoder.encode(f"query: {texto}").tolist()
+    respuesta = _supabase.table("subvenciones").select("ambito, ccaa").execute()
+    filas = respuesta.data or []
 
-    parametros = {
-        "query_embedding": query_embedding,
-        "match_threshold": match_threshold,
-        "match_count": limite,
-        "filtro_categorias": categorias or None,
-        "filtro_ambito": ambito or None,
-        "filtro_ccaa": ccaa or None,
-        "filtro_fuente": fuente or None,
-        "filtro_importe_min": importe_min or None,
-        "filtro_importe_max": importe_max or None,
-        "solo_vigentes": solo_vigentes,
-        "solo_novedades": solo_novedades,
-    }
+    ambitos = sorted({f["ambito"] for f in filas if f.get("ambito")})
+    ccaa = sorted({v for f in filas for v in (f.get("ccaa") or [])})
 
-    respuesta = supabase.rpc("buscar_subvenciones", parametros).execute()
-    return pd.DataFrame(respuesta.data or [])
-
-
-def _formatear_importe(valor) -> str:
-    if pd.isna(valor):
-        return "No especificado"
-    texto = f"{valor:,.2f}"
-    # es-ES: punto de miles, coma decimal (al revés que en-US)
-    return texto.replace(",", "X").replace(".", ",").replace("X", ".") + " €"
-
-
-def _unir_lista(valor) -> str:
-    if isinstance(valor, list) and valor:
-        return ", ".join(valor)
-    return ""
-
-
-def formatear_para_tabla(df: pd.DataFrame) -> pd.DataFrame:
-    """Prepara columnas legibles para mostrar en `st.dataframe`."""
-    if df.empty:
-        return df
-
-    return pd.DataFrame({
-        "Relevancia (%)": (df["similarity"] * 100).round(1) if "similarity" in df else 100.0,
-        "Título": df["titulo"],
-        "Organismo": df["organismo"].fillna("No especificado"),
-        "Ámbito": df["ambito"].fillna("No especificado"),
-        "CCAA": df["ccaa"].apply(_unir_lista).replace("", "Nacional / No aplica"),
-        "Categorías": df["categorias"].apply(_unir_lista).replace("", "Sin clasificar"),
-        "Importe": df["presupuesto_total"].apply(_formatear_importe),
-        "Cierre de plazo": df["fecha_fin_solicitud"].fillna("No especificada"),
-        "Fuente": df["fuente_origen"],
-        "Novedad": df["es_novedad"],
-        "Enlace": df["url_oficial"],
-    })
+    return ambitos, ccaa
