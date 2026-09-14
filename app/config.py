@@ -38,4 +38,4 @@ SUPABASE_ANON_KEY = _config("SUPABASE_ANON_KEY")
 # `vector(384)` definido en sql/schema.sql.
 MODELO_EMBEDDING = "intfloat/multilingual-e5-small"
 
-FUENTES_DISPONIBLES = ["BDNS", "BOE"]
+FUENTES_DISPONIBLES = ["BDNS", "BOE", "Funding & Tenders"]
