@@ -8,7 +8,7 @@ desplegar en Streamlit Community Cloud) y, si no existen ahí, de las
 variables de entorno (cómodo para desarrollo local con un `.env`).
 
 Nota: las opciones de los filtros de Ámbito y CCAA NO están aquí como
-listas fijas — se calculan en tiempo real a partir de los valores que de
+listas fijas — se calculan en tiempo real a partir de los valores que de 
 verdad hay en la tabla (ver `search.obtener_opciones_filtro`), porque la
 BDNS no documenta un vocabulario cerrado para esos campos (p. ej. el
 ámbito puede venir como "LOCAL", y la CCAA como "ES130 - Cantabria").
