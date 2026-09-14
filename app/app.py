@@ -37,18 +37,18 @@ st.markdown(
             background-color: #0066cc;
             color: white;
             font-weight: bold;
-            font-size: 13px;
-            padding: 0.48rem 0.95rem;
-            border-radius: 7px;
+            font-size: 11px;
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
             border: none;
             width: 100%;
-            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
 
         div.stButton > button:first-child:hover {
             background-color: #0052a3;
-            box-shadow: 0 5px 7px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
             color: white;
         }
 
@@ -60,10 +60,10 @@ st.markdown(
         .results-container {
             background-color: #f8f9fa;
             border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 16px;
-            margin-top: 10px;
-            margin-bottom: 10px;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 6px;
+            margin-bottom: 6px;
         }
 
 
@@ -72,14 +72,14 @@ st.markdown(
            ========================================================= */
 
         h1 {
-            font-size: 1.9rem !important;
-            margin-bottom: 0.4rem !important;
+            font-size: 1.5rem !important;
+            margin-bottom: 0.2rem !important;
         }
 
         h3 {
-            font-size: 1.2rem !important;
-            margin-top: 0.5rem !important;
-            margin-bottom: 0.4rem !important;
+            font-size: 1rem !important;
+            margin-top: 0.3rem !important;
+            margin-bottom: 0.2rem !important;
         }
 
 
@@ -88,12 +88,12 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stWidgetLabel"] p {
-            font-size: 12px !important;
-            margin-bottom: 2px !important;
+            font-size: 11px !important;
+            margin-bottom: 1px !important;
         }
 
         label {
-            font-size: 12px !important;
+            font-size: 11px !important;
         }
 
 
@@ -102,15 +102,15 @@ st.markdown(
            ========================================================= */
 
         div[data-baseweb="input"] {
-            min-height: 22px !important;
-            height: 22px !important;
+            min-height: 18px !important;
+            height: 18px !important;
         }
 
         div[data-baseweb="input"] input {
-            height: 20px !important;
-            min-height: 20px !important;
-            padding: 1px 6px !important;
-            font-size: 11px !important;
+            height: 16px !important;
+            min-height: 16px !important;
+            padding: 0px 4px !important;
+            font-size: 10px !important;
         }
 
 
@@ -119,12 +119,12 @@ st.markdown(
            ========================================================= */
 
         div[data-baseweb="select"] {
-            min-height: 22px !important;
-            font-size: 11px !important;
+            min-height: 18px !important;
+            font-size: 10px !important;
         }
 
         div[data-baseweb="select"] * {
-            font-size: 11px !important;
+            font-size: 10px !important;
         }
 
 
@@ -133,10 +133,10 @@ st.markdown(
            ========================================================= */
 
         [data-baseweb="tag"] {
-            font-size: 10px !important;
-            padding: 0 4px !important;
+            font-size: 9px !important;
+            padding: 0 2px !important;
             margin: 0 1px !important;
-            line-height: 17px !important;
+            line-height: 14px !important;
         }
 
 
@@ -145,9 +145,9 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stNumberInput"] button {
-            min-height: 22px !important;
-            height: 22px !important;
-            width: 22px !important;
+            min-height: 18px !important;
+            height: 18px !important;
+            width: 18px !important;
         }
 
 
@@ -156,15 +156,15 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stDateInput"] [data-baseweb="input"] {
-            min-height: 22px !important;
-            height: 22px !important;
+            min-height: 18px !important;
+            height: 18px !important;
         }
 
         [data-testid="stDateInput"] input {
-            height: 20px !important;
-            min-height: 20px !important;
-            padding: 1px 6px !important;
-            font-size: 11px !important;
+            height: 16px !important;
+            min-height: 16px !important;
+            padding: 0px 4px !important;
+            font-size: 10px !important;
         }
 
 
@@ -173,7 +173,7 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stVerticalBlock"] {
-            gap: 0.5rem;
+            gap: 0.25rem;
         }
 
 
@@ -182,8 +182,8 @@ st.markdown(
            ========================================================= */
 
         [data-testid="column"] {
-            padding-left: 0.3rem;
-            padding-right: 0.3rem;
+            padding-left: 0.2rem;
+            padding-right: 0.2rem;
         }
 
 
@@ -192,7 +192,7 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stCheckbox"] label {
-            font-size: 12px !important;
+            font-size: 11px !important;
         }
 
 
@@ -211,7 +211,8 @@ st.markdown(
            ========================================================= */
 
         [data-testid="stAlert"] {
-            font-size: 13px !important;
+            font-size: 11px !important;
+            padding: 4px 8px !important;
         }
 
 
@@ -220,8 +221,8 @@ st.markdown(
            ========================================================= */
 
         .block-container {
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
         }
 
     </style>
