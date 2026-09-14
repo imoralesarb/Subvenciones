@@ -1,0 +1,38 @@
+name: Limpiar Funding & Tenders caducados
+
+on:
+  schedule:
+    # Cron no tiene un "cada 14 días" nativo que se mantenga alineado mes
+    # a mes (day-of-month vuelve a arrancar en 1 cada mes, así que
+    # "*/14" daría huecos irregulares de 14/17/etc. días según el mes).
+    # El día 1 y el día 15 de cada mes es la forma habitual de aproximar
+    # "cada dos semanas" con cron: no es exactamente cada 14 días, pero
+    # se queda muy cerca y es predecible. Ajusta si lo prefieres distinto.
+    - cron: '0 3 1,15 * *'   # los días 1 y 15 de cada mes, a las 03:00 UTC
+  workflow_dispatch:            # permite lanzarlo a mano desde la pestaña Actions
+
+jobs:
+  limpiar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests supabase
+
+      - name: Eliminar convocatorias de Funding & Tenders ya no vigentes
+        working-directory: ingest
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python limpiar_funding_tenders.py
