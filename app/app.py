@@ -139,7 +139,7 @@ with col2:
 with col3:
     filtro_ccaa = st.multiselect("📍 Comunidad Autónoma", CCAA_DISPONIBLES, default=[], key="filtro_ccaa")
 
-# Campos de Beneficiarios (multiselect) y Título de bases reguladoras (texto libre semántico)
+# Campos de Beneficiarios (multiselect) y Título de bases reguladoras (texto libre con IA)
 col_beneficiarios_filtro, col_titulo_bases = st.columns(2)
 
 with col_beneficiarios_filtro:
@@ -277,7 +277,7 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
             return any(s.casefold() in partes for s in seleccion)
         df = df[df["beneficiarios"].apply(cumple_beneficiarios)]
 
-    # 6. Título de bases reguladoras (Búsqueda Semántica con Transformer)
+    # 6. Título de bases reguladoras (Búsqueda Semántica con Transformer mejorada)
     if filtro_titulo_bases_texto and filtro_titulo_bases_texto.strip():
         texto_busq = filtro_titulo_bases_texto.strip()
         query_bases_embed = encoder.encode(f"query: {texto_busq}")
@@ -289,9 +289,11 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
             for item in items:
                 if not item.strip():
                     continue
-                item_embed = encoder.encode(str(item))
+                # Se aplica el prefijo passage para igualar el espacio vectorial de embeddings entrenados
+                item_embed = encoder.encode(f"passage: {str(item)}")
                 similitud = util.cos_sim(query_bases_embed, item_embed).item()
-                if similitud >= 0.45:
+                # Umbral calibrado de similitud semántica
+                if similitud >= 0.35:
                     return True
             return False
 
