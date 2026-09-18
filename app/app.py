@@ -238,7 +238,6 @@ with st.spinner("Cargando modelo de IA..."):
 (
     AMBITOS_DISPONIBLES,
     CCAA_DISPONIBLES,
-    TIPOS_BENEFICIARIO_DISPONIBLES,
     TITULOS_BASES_DISPONIBLES,
     TIPOS_CONVOCATORIA_DISPONIBLES,
 ) = obtener_opciones_filtro(supabase)
@@ -262,8 +261,8 @@ def limpiar_campos():
     st.session_state.filtro_fuente = []
     st.session_state.filtro_ambito = []
     st.session_state.filtro_ccaa = []
-    st.session_state.filtro_beneficiarios = ""
-    st.session_state.filtro_tipo_beneficiario = []
+    # st.session_state.filtro_beneficiarios = ""
+    # st.session_state.filtro_tipo_beneficiario = []
     st.session_state.filtro_titulo_bases = []
     st.session_state.filtro_tipo_convocatoria = []
     st.session_state.importe_min = 0.0
@@ -311,23 +310,11 @@ with col3:
         key="filtro_ccaa",
     )
 
-# Beneficiarios (texto libre)
-filtro_beneficiarios = st.text_input(
-    "👥 Beneficiarios (texto libre)",
-    placeholder="ej. autónomos, pymes, entidades sin ánimo de lucro...",
-    key="filtro_beneficiarios",
-)
+
 
 # Campos nuevos (selección múltiple, opciones pobladas desde los datos reales)
-col_tipo_benef, col_titulo_bases, col_tipo_conv = st.columns(3)
+col_titulo_bases, col_tipo_conv = st.columns(2)
 
-with col_tipo_benef:
-    filtro_tipo_beneficiario = st.multiselect(
-        "🧑‍🤝‍🧑 Tipo de beneficiario elegible",
-        TIPOS_BENEFICIARIO_DISPONIBLES,
-        default=[],
-        key="filtro_tipo_beneficiario",
-    )
 with col_titulo_bases:
     filtro_titulo_bases = st.multiselect(
         "📜 Título de bases reguladoras",
