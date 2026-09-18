@@ -2,13 +2,6 @@
 search.py
 ---------
 Funciones de acceso a datos para el buscador de subvenciones.
-
-Sigue el mismo patrón que `app.py` del proyecto de Licitaciones de
-referencia: la función RPC `buscar_subvenciones` de Supabase solo hace
-búsqueda semántica (embeddings); el resto de filtros estructurados
-(fuente, ámbito, CCAA, importe, beneficiarios, fechas) se aplican con
-pandas en app.py, tanto sobre el resultado de la búsqueda semántica como
-sobre un listado plano cuando no hay texto de búsqueda.
 """
 import pandas as pd
 import streamlit as st
@@ -112,5 +105,4 @@ def obtener_opciones_filtro(_supabase: Client) -> tuple:
 
     tipos_convocatoria = sorted({v for f in filas for v in (f.get("tipo_convocatoria") or [])})
 
-    # Devolvemos 4 elementos (sin bases reguladoras)
     return ambitos, ccaa, beneficiarios_opciones, tipos_convocatoria
