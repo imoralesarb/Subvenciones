@@ -30,7 +30,7 @@ st.markdown(
     <style>
 
         /* =========================================================
-           BOTONES
+            BOTONES
            ========================================================= */
 
         div.stButton > button:first-child {
@@ -54,7 +54,7 @@ st.markdown(
 
 
         /* =========================================================
-           CONTENEDOR DE RESULTADOS
+            CONTENEDOR DE RESULTADOS
            ========================================================= */
 
         .results-container {
@@ -68,7 +68,7 @@ st.markdown(
 
 
         /* =========================================================
-           TÍTULOS
+            TÍTULOS
            ========================================================= */
 
         h1 {
@@ -84,7 +84,7 @@ st.markdown(
 
 
         /* =========================================================
-           ETIQUETAS DE LOS CAMPOS
+            ETIQUETAS DE LOS CAMPOS
            ========================================================= */
 
         [data-testid="stWidgetLabel"] p {
@@ -98,7 +98,7 @@ st.markdown(
 
 
         /* =========================================================
-           INPUTS DE TEXTO Y NUMBER INPUT
+            INPUTS DE TEXTO Y NUMBER INPUT
            ========================================================= */
 
         div[data-baseweb="input"] {
@@ -115,7 +115,7 @@ st.markdown(
 
 
         /* =========================================================
-           SELECT Y MULTISELECT
+            SELECT Y MULTISELECT
            ========================================================= */
 
         div[data-baseweb="select"] {
@@ -129,7 +129,7 @@ st.markdown(
 
 
         /* =========================================================
-           ETIQUETAS SELECCIONADAS DEL MULTISELECT
+            ETIQUETAS SELECCIONADAS DEL MULTISELECT
            ========================================================= */
 
         [data-baseweb="tag"] {
@@ -141,7 +141,7 @@ st.markdown(
 
 
         /* =========================================================
-           BOTONES +/- DE NUMBER INPUT
+            BOTONES +/- DE NUMBER INPUT
            ========================================================= */
 
         [data-testid="stNumberInput"] button {
@@ -152,7 +152,7 @@ st.markdown(
 
 
         /* =========================================================
-           DATE INPUT
+            DATE INPUT
            ========================================================= */
 
         [data-testid="stDateInput"] [data-baseweb="input"] {
@@ -169,7 +169,7 @@ st.markdown(
 
 
         /* =========================================================
-           ESPACIADO ENTRE ELEMENTOS
+            ESPACIADO ENTRE ELEMENTOS
            ========================================================= */
 
         [data-testid="stVerticalBlock"] {
@@ -178,7 +178,7 @@ st.markdown(
 
 
         /* =========================================================
-           ESPACIADO DE COLUMNAS
+            ESPACIADO DE COLUMNAS
            ========================================================= */
 
         [data-testid="column"] {
@@ -188,7 +188,7 @@ st.markdown(
 
 
         /* =========================================================
-           CHECKBOX
+            CHECKBOX
            ========================================================= */
 
         [data-testid="stCheckbox"] label {
@@ -197,7 +197,7 @@ st.markdown(
 
 
         /* =========================================================
-           SLIDER
+            SLIDER
            ========================================================= */
 
         [data-testid="stSlider"] {
@@ -207,7 +207,7 @@ st.markdown(
 
 
         /* =========================================================
-           ALERTAS
+            ALERTAS
            ========================================================= */
 
         [data-testid="stAlert"] {
@@ -216,7 +216,7 @@ st.markdown(
 
 
         /* =========================================================
-           CONTENEDOR PRINCIPAL
+            CONTENEDOR PRINCIPAL
            ========================================================= */
 
         .block-container {
@@ -228,17 +228,18 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 # 1. Conexión a Supabase y modelo de IA
 supabase = obtener_cliente()
 
 with st.spinner("Cargando modelo de IA..."):
     encoder = obtener_encoder()
 
-# Opciones de Ámbito/CCAA/campos nuevos calculadas a partir de los datos reales (ver search.py)
+# Opciones de Ámbito/CCAA/Beneficiarios/Tipo convocatoria calculadas a partir de los datos reales (ver search.py)
 (
     AMBITOS_DISPONIBLES,
     CCAA_DISPONIBLES,
-    TITULOS_BASES_DISPONIBLES,
+    BENEFICIARIOS_DISPONIBLES,
     TIPOS_CONVOCATORIA_DISPONIBLES,
 ) = obtener_opciones_filtro(supabase)
 
@@ -250,10 +251,6 @@ if "mensaje_estado" not in st.session_state:
 
 # 2. Interfaz Visual y Gestión de Estado
 st.title("💶 Buscador inteligente de Subvenciones")
-#st.caption(
-#    "Datos oficiales de la BDNS (Base de Datos Nacional de Subvenciones) "
-#    "y del BOE (Boletín Oficial del Estado)."
-#)
 
 
 def limpiar_campos():
@@ -261,9 +258,7 @@ def limpiar_campos():
     st.session_state.filtro_fuente = []
     st.session_state.filtro_ambito = []
     st.session_state.filtro_ccaa = []
-    # st.session_state.filtro_beneficiarios = ""
-    # st.session_state.filtro_tipo_beneficiario = []
-    st.session_state.filtro_titulo_bases = []
+    st.session_state.filtro_beneficiario_opcion = []
     st.session_state.filtro_tipo_convocatoria = []
     st.session_state.importe_min = 0.0
     st.session_state.importe_max = 0.0
@@ -310,17 +305,15 @@ with col3:
         key="filtro_ccaa",
     )
 
+# Campos de Beneficiarios y Tipo de convocatoria (desplegables inteligentes)
+col_beneficiarios_filtro, col_tipo_conv = st.columns(2)
 
-
-# Campos nuevos (selección múltiple, opciones pobladas desde los datos reales)
-col_titulo_bases, col_tipo_conv = st.columns(2)
-
-with col_titulo_bases:
-    filtro_titulo_bases = st.multiselect(
-        "📜 Título de bases reguladoras",
-        TITULOS_BASES_DISPONIBLES,
+with col_beneficiarios_filtro:
+    filtro_beneficiario_opcion = st.multiselect(
+        "👥 Beneficiarios",
+        BENEFICIARIOS_DISPONIBLES,
         default=[],
-        key="filtro_titulo_bases",
+        key="filtro_beneficiario_opcion",
     )
 with col_tipo_conv:
     filtro_tipo_convocatoria = st.multiselect(
@@ -465,29 +458,22 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
         seleccion = set(filtro_ccaa)
         df = df[df["ccaa"].apply(lambda lst: bool(set(lst or []) & seleccion))]
 
-    # 5. Beneficiarios (texto libre)
-    if filtro_beneficiarios.strip():
-        df = df[
-            df["beneficiarios"].str.contains(
-                filtro_beneficiarios.strip(), case=False, na=False
-            )
-        ]
+    # 5. Beneficiarios (desplegable inteligente)
+    if filtro_beneficiario_opcion:
+        seleccion = set(filtro_beneficiario_opcion)
+        def cumple_beneficiarios(val):
+            if not val or pd.isna(val):
+                return False
+            partes = [p.strip().casefold() for p in str(val).replace(";", ",").split(",")]
+            return any(s.casefold() in partes for s in seleccion)
+        df = df[df["beneficiarios"].apply(cumple_beneficiarios)]
 
-    # 5b. Campos nuevos (selección múltiple sobre columnas array,
-    # mismo patrón de intersección de conjuntos que el filtro de CCAA)
-    if filtro_tipo_beneficiario:
-        seleccion = set(filtro_tipo_beneficiario)
-        df = df[df["tipo_beneficiario_elegible"].apply(lambda lst: bool(set(lst or []) & seleccion))]
-
-    if filtro_titulo_bases:
-        seleccion = set(filtro_titulo_bases)
-        df = df[df["titulo_bases_reguladoras"].apply(lambda lst: bool(set(lst or []) & seleccion))]
-
+    # 6. Tipo de convocatoria
     if filtro_tipo_convocatoria:
         seleccion = set(filtro_tipo_convocatoria)
         df = df[df["tipo_convocatoria"].apply(lambda lst: bool(set(lst or []) & seleccion))]
 
-    # 6. Fecha de cierre
+    # 7. Fecha de cierre
     def filtrar_fecha_fin(f_str):
         if pd.isna(f_str) or not str(f_str).strip():
             return True  # sin fecha de cierre especificada -> no se excluye
@@ -499,7 +485,7 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
     if "fecha_fin_solicitud" in df.columns:
         df = df[df["fecha_fin_solicitud"].apply(filtrar_fecha_fin)]
 
-    # 7. Fecha de publicación
+    # 8. Fecha de publicación
     def filtrar_fecha_pub(f_str):
         if pd.isna(f_str) or not str(f_str).strip():
             return False
@@ -527,7 +513,6 @@ def construir_tabla_final(df: pd.DataFrame) -> pd.DataFrame:
             "Título": row.titulo,
             "Organismo": getattr(row, "organismo", None) or "No especificado",
             "Ámbito": str(getattr(row, "ambito", "") or "No especificado").title(),
-            # "Ámbito": (getattr(row, "ambito", None) or "No especificado").title(),
             "CCAA": ", ".join(ccaa_valor) if ccaa_valor else "Nacional / No aplica",
             "Beneficiarios": getattr(row, "beneficiarios", None) or "No especificado",
             "Cierre": getattr(row, "fecha_fin_solicitud", None) or "No especificada",
@@ -537,7 +522,6 @@ def construir_tabla_final(df: pd.DataFrame) -> pd.DataFrame:
                 if importe_valor is not None and not pd.isna(importe_valor)
                 else "No especificado"
             ),
-            #"Fuente": row.fuente_origen,
             "Enlace": row.url_oficial,
             "Es Novedad": getattr(row, "es_novedad", False),
             "Es Actualizada": getattr(row, "es_actualizada", False),
