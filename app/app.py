@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 import pandas as pd
 import streamlit as st
+from sentence_transformers import util
 
 from config import FUENTES_DISPONIBLES
 from db import obtener_cliente, obtener_encoder
@@ -138,7 +139,7 @@ with col2:
 with col3:
     filtro_ccaa = st.multiselect("📍 Comunidad Autónoma", CCAA_DISPONIBLES, default=[], key="filtro_ccaa")
 
-# Campos de Beneficiarios (multiselect) y Título de bases reguladoras (texto libre)
+# Campos de Beneficiarios (multiselect) y Título de bases reguladoras (texto libre semántico)
 col_beneficiarios_filtro, col_titulo_bases = st.columns(2)
 
 with col_beneficiarios_filtro:
@@ -150,8 +151,8 @@ with col_beneficiarios_filtro:
     )
 with col_titulo_bases:
     filtro_titulo_bases_texto = st.text_input(
-        "📜 Título de bases reguladoras (Texto libre)",
-        placeholder="ej. orden ICT/..., bases reguladoras de...",
+        "📜 Título de bases reguladoras (Búsqueda IA)",
+        placeholder="ej. bases reguladoras de digitalización...",
         key="filtro_titulo_bases_texto",
     )
 
@@ -276,16 +277,25 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
             return any(s.casefold() in partes for s in seleccion)
         df = df[df["beneficiarios"].apply(cumple_beneficiarios)]
 
-    # 6. Título de bases reguladoras (Texto libre)
+    # 6. Título de bases reguladoras (Búsqueda Semántica con Transformer)
     if filtro_titulo_bases_texto and filtro_titulo_bases_texto.strip():
-        texto_busqueda = filtro_titulo_bases_texto.strip().casefold()
-        def cumple_bases(val):
+        texto_busq = filtro_titulo_bases_texto.strip()
+        query_bases_embed = encoder.encode(f"query: {texto_busq}")
+        
+        def cumple_bases_semantico(val):
             if not val or pd.isna(val):
                 return False
-            if isinstance(val, list):
-                return any(texto_busqueda in str(item).casefold() for item in val)
-            return texto_busqueda in str(val).casefold()
-        df = df[df["titulo_bases_reguladoras"].apply(cumple_bases)]
+            items = val if isinstance(val, list) else [str(val)]
+            for item in items:
+                if not item.strip():
+                    continue
+                item_embed = encoder.encode(str(item))
+                similitud = util.cos_sim(query_bases_embed, item_embed).item()
+                if similitud >= 0.45:
+                    return True
+            return False
+
+        df = df[df["titulo_bases_reguladoras"].apply(cumple_bases_semantico)]
 
     # 7. Tipo de convocatoria
     if filtro_tipo_convocatoria:
@@ -328,7 +338,6 @@ def construir_tabla_final(df: pd.DataFrame) -> pd.DataFrame:
         bases_valor = getattr(row, "titulo_bases_reguladoras", None)
         convocatoria_valor = getattr(row, "tipo_convocatoria", None)
 
-        # Formatear arrays o listas de bases reguladoras y tipos de convocatoria para visualización limpia
         bases_str = ", ".join(bases_valor) if isinstance(bases_valor, list) else (str(bases_valor) if bases_valor else "No especificado")
         convocatoria_str = ", ".join(convocatoria_valor) if isinstance(convocatoria_valor, list) else (str(convocatoria_valor) if convocatoria_valor else "No especificado")
 
