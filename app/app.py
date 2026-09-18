@@ -431,7 +431,6 @@ def construir_tabla_final(df: pd.DataFrame) -> pd.DataFrame:
         })
     return pd.DataFrame(tabla_final)
 
-
 # 3. Lógica del botón de Novedades
 if btn_novedades:
     with st.spinner("Buscando en novedades y actualizaciones..."):
@@ -440,7 +439,7 @@ if btn_novedades:
         else:
             resultados = listar_novedades(supabase)
 
-        aviso = procesar_resultados(resultados, "novedades")
+        aviso = procesar_resultados(resultados, "novedades", filtro_titulo_bases_texto)
         if aviso:
             st.warning(aviso)
 
@@ -452,9 +451,10 @@ elif btn_buscar:
         else:
             resultados = listar_todas(supabase)
 
-        aviso = procesar_resultados(resultados, "subvenciones")
+        aviso = procesar_resultados(resultados, "subvenciones", filtro_titulo_bases_texto)
         if aviso:
             st.warning(aviso)
+
 
 # 5. Renderizado persistente de resultados
 if st.session_state.df_resultados is not None and not st.session_state.df_resultados.empty:
