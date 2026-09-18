@@ -151,7 +151,7 @@ with col_beneficiarios_filtro:
     )
 with col_titulo_bases:
     filtro_titulo_bases_texto = st.text_input(
-        "📜 Título de bases reguladoras (Búsqueda IA)",
+        "📜 Título de bases reguladoras",
         placeholder="ej. bases reguladoras de digitalización...",
         key="filtro_titulo_bases_texto",
     )
