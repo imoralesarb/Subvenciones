@@ -74,6 +74,9 @@ CAMPOS_COMPARABLES = (
     "ambito",
     "ccaa",
     "beneficiarios",
+    "tipo_beneficiario_elegible",
+    "titulo_bases_reguladoras",
+    "tipo_convocatoria",
     "presupuesto_total",
     "fecha_inicio_solicitud",
     "fecha_fin_solicitud",
@@ -393,6 +396,91 @@ def extraer_beneficiarios(
 
 
 # ============================================================
+# EXTRAER TIPO DE BENEFICIARIO ELEGIBLE (campo nuevo, aditivo)
+# ============================================================
+# Reutiliza el mismo "tiposBeneficiarios" que ya usa extraer_beneficiarios
+# (confirmado funcionando: es de donde sale el texto libre de arriba),
+# pero como LISTA -- no como una única cadena unida por comas -- para
+# poder guardarla en la columna array tipo_beneficiario_elegible y
+# ofrecerla como filtro de selección múltiple en la interfaz.
+def extraer_tipo_beneficiario_elegible(data: dict) -> list:
+    beneficiarios = data.get("tiposBeneficiarios") or []
+    if not isinstance(beneficiarios, list):
+        return []
+
+    valores = []
+    for beneficiario in beneficiarios:
+        if not isinstance(beneficiario, dict):
+            continue
+        descripcion = beneficiario.get("descripcion")
+        if descripcion:
+            valores.append(str(descripcion))
+
+    return list(dict.fromkeys(valores))
+
+
+# ============================================================
+# EXTRAER TÍTULO DE BASES REGULADORAS (campo nuevo, aditivo)
+# ============================================================
+# Se intenta primero "basesReguladoras.titulo" -- un campo estructurado
+# (título + url) que, según fuentes de terceros que documentan la API,
+# existe en la respuesta de la BDNS, pero que NO se ha podido confirmar
+# de forma directa en este proyecto (sin acceso de red a
+# infosubvenciones.es al escribir esto). Si no aparece, se recurre a
+# "descripcionBasesReguladoras", el campo que SÍ está confirmado y en
+# uso (ver extraer_descripcion): es un texto más largo/descriptivo, no
+# un título limpio, pero es mejor que dejar el campo vacío.
+def extraer_titulo_bases_reguladoras(data: dict) -> list:
+    bases = data.get("basesReguladoras")
+    if isinstance(bases, dict):
+        titulo = bases.get("titulo")
+        if titulo:
+            return [str(titulo)]
+
+    descripcion_bases = data.get("descripcionBasesReguladoras")
+    if descripcion_bases:
+        return [str(descripcion_bases)]
+
+    return []
+
+
+# ============================================================
+# EXTRAER TIPO DE CONVOCATORIA (campo nuevo, aditivo)
+# ============================================================
+# AVISO: a diferencia de las dos funciones anteriores, el nombre exacto
+# del campo JSON de la API de la BDNS para "tipo de convocatoria"
+# (concurrencia competitiva / asignación directa / no publicable, según
+# la propia documentación de la BDNS) NO se ha podido confirmar sin
+# poder consultar la API en vivo -- "instrumentos" es un campo
+# DISTINTO ("instrumentos de ayuda": subvención, préstamo, garantía...,
+# según la documentación oficial de la BDNS), así que no se usa aquí
+# para no mezclar dos conceptos distintos.
+#
+# Se prueban varios nombres de campo plausibles, de forma defensiva; si
+# tras una ejecución real ves que `tipo_convocatoria` sale siempre
+# vacío, revisa una respuesta real de
+# GET /bdnstrans/api/convocatorias?numConv=<uno cualquiera>&vpd=GE
+# y ajusta CANDIDATOS_CAMPO_TIPO_CONVOCATORIA con el nombre real.
+CANDIDATOS_CAMPO_TIPO_CONVOCATORIA = (
+    "tipoConvocatoria",
+    "procedimientoConcesion",
+    "tipoProcedimiento",
+)
+
+
+def extraer_tipo_convocatoria(data: dict) -> list:
+    for campo in CANDIDATOS_CAMPO_TIPO_CONVOCATORIA:
+        valor = data.get(campo)
+        if not valor:
+            continue
+        if isinstance(valor, dict):
+            valor = valor.get("descripcion") or valor.get("nombre")
+        if valor:
+            return [str(valor)]
+    return []
+
+
+# ============================================================
 # EXTRAER DESCRIPCIÓN
 # ============================================================
 
@@ -635,6 +723,22 @@ def construir_registro(
     )
 
     # --------------------------------------------------------
+    # CAMPOS NUEVOS (aditivos, ver funciones extraer_* de arriba)
+    # --------------------------------------------------------
+
+    tipo_beneficiario_elegible = extraer_tipo_beneficiario_elegible(
+        data
+    )
+
+    titulo_bases_reguladoras = extraer_titulo_bases_reguladoras(
+        data
+    )
+
+    tipo_convocatoria = extraer_tipo_convocatoria(
+        data
+    )
+
+    # --------------------------------------------------------
     # DESCRIPCIÓN
     # --------------------------------------------------------
 
@@ -716,6 +820,15 @@ def construir_registro(
 
         "beneficiarios":
             beneficiarios,
+
+        "tipo_beneficiario_elegible":
+            tipo_beneficiario_elegible,
+
+        "titulo_bases_reguladoras":
+            titulo_bases_reguladoras,
+
+        "tipo_convocatoria":
+            tipo_convocatoria,
     }
 
 
