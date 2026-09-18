@@ -17,7 +17,8 @@ from supabase import Client
 
 COLUMNAS_LISTADO = (
     "codigo_unico, titulo, organismo, fuente_origen, ambito, ccaa, "
-    "beneficiarios, presupuesto_total, url_oficial, fecha_publicacion, "
+    "beneficiarios, tipo_beneficiario_elegible, titulo_bases_reguladoras, tipo_convocatoria, "
+    "presupuesto_total, url_oficial, fecha_publicacion, "
     "fecha_fin_solicitud, es_novedad, es_actualizada"
 )
 
@@ -82,19 +83,26 @@ def listar_novedades(supabase: Client) -> list:
 @st.cache_data(ttl=3600, show_spinner=False)
 def obtener_opciones_filtro(_supabase: Client) -> tuple:
     """
-    Calcula las opciones de los desplegables de Ámbito y CCAA a partir de
-    los valores realmente presentes en la tabla (no hay un vocabulario
-    cerrado documentado por la BDNS). Cacheado 1h para no repetir la
-    consulta en cada interacción del usuario.
+    Calcula las opciones de los desplegables de Ámbito, CCAA y los 3
+    campos nuevos (Tipo de beneficiario elegible, Título de bases
+    reguladoras, Tipo de convocatoria) a partir de los valores realmente
+    presentes en la tabla (no hay un vocabulario cerrado documentado por
+    la BDNS). Cacheado 1h para no repetir la consulta en cada
+    interacción del usuario.
 
     (El parámetro se llama `_supabase`, con guion bajo, porque los
     objetos cliente no son "hasheables" y Streamlit debe ignorarlos al
     decidir si reutiliza la caché.)
     """
-    respuesta = _supabase.table("subvenciones").select("ambito, ccaa").execute()
+    respuesta = _supabase.table("subvenciones").select(
+        "ambito, ccaa, tipo_beneficiario_elegible, titulo_bases_reguladoras, tipo_convocatoria"
+    ).execute()
     filas = respuesta.data or []
 
     ambitos = sorted({f["ambito"] for f in filas if f.get("ambito")})
     ccaa = sorted({v for f in filas for v in (f.get("ccaa") or [])})
+    tipos_beneficiario = sorted({v for f in filas for v in (f.get("tipo_beneficiario_elegible") or [])})
+    titulos_bases = sorted({v for f in filas for v in (f.get("titulo_bases_reguladoras") or [])})
+    tipos_convocatoria = sorted({v for f in filas for v in (f.get("tipo_convocatoria") or [])})
 
-    return ambitos, ccaa
+    return ambitos, ccaa, tipos_beneficiario, titulos_bases, tipos_convocatoria

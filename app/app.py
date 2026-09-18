@@ -234,8 +234,14 @@ supabase = obtener_cliente()
 with st.spinner("Cargando modelo de IA..."):
     encoder = obtener_encoder()
 
-# Opciones de Ámbito/CCAA calculadas a partir de los datos reales (ver search.py)
-AMBITOS_DISPONIBLES, CCAA_DISPONIBLES = obtener_opciones_filtro(supabase)
+# Opciones de Ámbito/CCAA/campos nuevos calculadas a partir de los datos reales (ver search.py)
+(
+    AMBITOS_DISPONIBLES,
+    CCAA_DISPONIBLES,
+    TIPOS_BENEFICIARIO_DISPONIBLES,
+    TITULOS_BASES_DISPONIBLES,
+    TIPOS_CONVOCATORIA_DISPONIBLES,
+) = obtener_opciones_filtro(supabase)
 
 # Inicializar estados de sesión para persistencia de resultados
 if "df_resultados" not in st.session_state:
@@ -257,6 +263,9 @@ def limpiar_campos():
     st.session_state.filtro_ambito = []
     st.session_state.filtro_ccaa = []
     st.session_state.filtro_beneficiarios = ""
+    st.session_state.filtro_tipo_beneficiario = []
+    st.session_state.filtro_titulo_bases = []
+    st.session_state.filtro_tipo_convocatoria = []
     st.session_state.importe_min = 0.0
     st.session_state.importe_max = 0.0
     st.session_state.limite_resultados = 10
@@ -308,6 +317,31 @@ filtro_beneficiarios = st.text_input(
     placeholder="ej. autónomos, pymes, entidades sin ánimo de lucro...",
     key="filtro_beneficiarios",
 )
+
+# Campos nuevos (selección múltiple, opciones pobladas desde los datos reales)
+col_tipo_benef, col_titulo_bases, col_tipo_conv = st.columns(3)
+
+with col_tipo_benef:
+    filtro_tipo_beneficiario = st.multiselect(
+        "🧑‍🤝‍🧑 Tipo de beneficiario elegible",
+        TIPOS_BENEFICIARIO_DISPONIBLES,
+        default=[],
+        key="filtro_tipo_beneficiario",
+    )
+with col_titulo_bases:
+    filtro_titulo_bases = st.multiselect(
+        "📜 Título de bases reguladoras",
+        TITULOS_BASES_DISPONIBLES,
+        default=[],
+        key="filtro_titulo_bases",
+    )
+with col_tipo_conv:
+    filtro_tipo_convocatoria = st.multiselect(
+        "📋 Tipo de convocatoria",
+        TIPOS_CONVOCATORIA_DISPONIBLES,
+        default=[],
+        key="filtro_tipo_convocatoria",
+    )
 
 # Fila de fechas
 col_fecha_fin, col_rango = st.columns([1, 2])
@@ -451,6 +485,20 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
                 filtro_beneficiarios.strip(), case=False, na=False
             )
         ]
+
+    # 5b. Campos nuevos (selección múltiple sobre columnas array,
+    # mismo patrón de intersección de conjuntos que el filtro de CCAA)
+    if filtro_tipo_beneficiario:
+        seleccion = set(filtro_tipo_beneficiario)
+        df = df[df["tipo_beneficiario_elegible"].apply(lambda lst: bool(set(lst or []) & seleccion))]
+
+    if filtro_titulo_bases:
+        seleccion = set(filtro_titulo_bases)
+        df = df[df["titulo_bases_reguladoras"].apply(lambda lst: bool(set(lst or []) & seleccion))]
+
+    if filtro_tipo_convocatoria:
+        seleccion = set(filtro_tipo_convocatoria)
+        df = df[df["tipo_convocatoria"].apply(lambda lst: bool(set(lst or []) & seleccion))]
 
     # 6. Fecha de cierre
     def filtrar_fecha_fin(f_str):
