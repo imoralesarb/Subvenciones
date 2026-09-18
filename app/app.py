@@ -239,7 +239,7 @@ def estilizar_filas(row):
     return [""] * len(row)
 
 
-def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
+def aplicar_filtros_comunes(df: pd.DataFrame, texto_bases_busqueda: str = "") -> pd.DataFrame:
     if df.empty:
         return df
 
@@ -277,27 +277,39 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
             return any(s.casefold() in partes for s in seleccion)
         df = df[df["beneficiarios"].apply(cumple_beneficiarios)]
 
-    # 6. Título de bases reguladoras (Búsqueda Semántica con Transformer mejorada)
-    if filtro_titulo_bases_texto and filtro_titulo_bases_texto.strip():
-        texto_busq = filtro_titulo_bases_texto.strip()
+    # 6. Título de bases reguladoras (Búsqueda Híbrida: Coincidencia Exacta + Semántica IA)
+    if texto_bases_busqueda and texto_bases_busqueda.strip():
+        texto_busq = texto_bases_busqueda.strip().casefold()
         query_bases_embed = encoder.encode(f"query: {texto_busq}")
         
-        def cumple_bases_semantico(val):
+        def evaluar_bases(val):
             if not val or pd.isna(val):
-                return False
+                return 0.0 # No cumple
             items = val if isinstance(val, list) else [str(val)]
+            max_score = 0.0
+            
             for item in items:
                 if not item.strip():
                     continue
-                # Se aplica el prefijo passage para igualar el espacio vectorial de embeddings entrenados
+                item_str = str(item).casefold()
+                
+                # A. Coincidencia exacta o parcial por texto (otorga base alta de relevancia)
+                if texto_busq in item_str:
+                    max_score = max(max_score, 0.85)
+                
+                # B. Similitud semántica con Transformer
                 item_embed = encoder.encode(f"passage: {str(item)}")
                 similitud = util.cos_sim(query_bases_embed, item_embed).item()
-                # Umbral calibrado de similitud semántica
-                if similitud >= 0.35:
-                    return True
-            return False
+                
+                if similitud >= 0.35: # Umbral flexible
+                    max_score = max(max_score, float(similitud))
+                    
+            return max_score
 
-        df = df[df["titulo_bases_reguladoras"].apply(cumple_bases_semantico)]
+        # Añadimos puntuación temporal de bases reguladoras al DataFrame
+        df["score_bases"] = df["titulo_bases_reguladoras"].apply(evaluar_bases)
+        # Filtramos solo las que tengan un score mayor a 0 (es decir, que cumplan alguna de las dos)
+        df = df[df["score_bases"] > 0.0]
 
     # 7. Tipo de convocatoria
     if filtro_tipo_convocatoria:
@@ -330,6 +342,59 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
         df = df[df["fecha_publicacion"].apply(filtrar_fecha_pub)]
 
     return df
+
+
+def procesar_resultados(resultados: list, contexto: str, texto_bases_busqueda: str = ""):
+    """Aplica filtros, calcula relevancia combinada, trunca al límite y guarda en session_state."""
+    if not resultados:
+        st.session_state.df_resultados = None
+        st.session_state.mensaje_estado = ""
+        return f"No se encontraron {contexto}."
+
+    df = pd.DataFrame(resultados)
+
+    if "es_novedad" in df.columns and "es_actualizada" in df.columns:
+        df = df[(df["es_novedad"] == True) | (df["es_actualizada"] == True)] if contexto == "novedades" else df
+
+    # Asignar relevancia inicial basada en la búsqueda semántica general de Supabase
+    if "similarity" in df.columns:
+        df["relevancia_general"] = df["similarity"].fillna(0.0)
+    else:
+        df["relevancia_general"] = 1.0 if not consulta_texto.strip() else 0.5
+
+    # Aplicar filtros (incluyendo el filtrado y puntuación de bases reguladoras)
+    df = aplicar_filtros_comunes(df, texto_bases_busqueda)
+
+    if df.empty:
+        st.session_state.df_resultados = None
+        st.session_state.mensaje_estado = ""
+        return f"No hay {contexto} que coincidan con los filtros y la búsqueda indicada."
+
+    # Combinación inteligente de niveles de relevancia (Búsqueda General + Filtro de Bases)
+    if "score_bases" in df.columns and texto_bases_busqueda.strip():
+        # Combinamos ponderando ambas notas (ej. 60% búsqueda general de IA + 40% coincidencia en bases)
+        df["relevancia_final"] = (df["relevancia_general"] * 0.6) + (df["score_bases"] * 0.4)
+    else:
+        df["relevancia_final"] = df["relevancia_general"]
+
+    # Convertir a porcentaje final para mostrar en la tabla y ordenar de mayor a menor relevancia
+    df["relevancia"] = (df["relevancia_final"] * 100).round(2)
+    df = df.sort_values(by="relevancia", ascending=False)
+
+    if not st.session_state.mostrar_todos:
+        total_encontrados = len(df)
+        df = df.head(st.session_state.limite_resultados)
+        mostrados = len(df)
+        if total_encontrados > mostrados:
+            mensaje = f"¡Mostrando las **{mostrados} subvenciones más relevantes** de un total de **{total_encontrados}** encontradas!"
+        else:
+            mensaje = f"¡Se han encontrado y mostrado las {mostrados} subvenciones relevantes!"
+    else:
+            mensaje = f"¡Se han encontrado y mostrado las {len(df)} subvenciones relevantes!"
+
+    st.session_state.df_resultados = construir_tabla_final(df)
+    st.session_state.mensaje_estado = mensaje
+    return None
 
 
 def construir_tabla_final(df: pd.DataFrame) -> pd.DataFrame:
@@ -365,46 +430,6 @@ def construir_tabla_final(df: pd.DataFrame) -> pd.DataFrame:
             "Es Actualizada": getattr(row, "es_actualizada", False),
         })
     return pd.DataFrame(tabla_final)
-
-
-def procesar_resultados(resultados: list, contexto: str):
-    """Aplica filtros, trunca al límite elegido y guarda el resultado en session_state."""
-    if not resultados:
-        st.session_state.df_resultados = None
-        st.session_state.mensaje_estado = ""
-        return f"No se encontraron {contexto}."
-
-    df = pd.DataFrame(resultados)
-
-    if "es_novedad" in df.columns and "es_actualizada" in df.columns:
-        df = df[(df["es_novedad"] == True) | (df["es_actualizada"] == True)] if contexto == "novedades" else df
-
-    if "similarity" in df.columns:
-        df["relevancia"] = (df["similarity"] * 100).round(2)
-    else:
-        df["relevancia"] = 100.0
-
-    df = aplicar_filtros_comunes(df)
-
-    if df.empty:
-        st.session_state.df_resultados = None
-        st.session_state.mensaje_estado = ""
-        return f"No hay {contexto} que coincidan con los filtros y la búsqueda indicada."
-
-    if not st.session_state.mostrar_todos:
-        total_encontrados = len(df)
-        df = df.head(st.session_state.limite_resultados)
-        mostrados = len(df)
-        if total_encontrados > mostrados:
-            mensaje = f"¡Mostrando las **{mostrados} subvenciones más relevantes** de un total de **{total_encontrados}** encontradas!"
-        else:
-            mensaje = f"¡Se han encontrado y mostrado las {mostrados} subvenciones relevantes!"
-    else:
-        mensaje = f"¡Se han encontrado y mostrado las {len(df)} subvenciones relevantes!"
-
-    st.session_state.df_resultados = construir_tabla_final(df)
-    st.session_state.mensaje_estado = mensaje
-    return None
 
 
 # 3. Lógica del botón de Novedades
