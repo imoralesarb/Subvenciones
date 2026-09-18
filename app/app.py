@@ -28,11 +28,6 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-
-        /* =========================================================
-            BOTONES
-           ========================================================= */
-
         div.stButton > button:first-child {
             background-color: #0066cc;
             color: white;
@@ -45,18 +40,11 @@ st.markdown(
             box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
-
         div.stButton > button:first-child:hover {
             background-color: #0052a3;
             box-shadow: 0 5px 7px rgba(0, 0, 0, 0.15);
             color: white;
         }
-
-
-        /* =========================================================
-            CONTENEDOR DE RESULTADOS
-           ========================================================= */
-
         .results-container {
             background-color: #f8f9fa;
             border: 1px solid #e0e0e0;
@@ -65,165 +53,24 @@ st.markdown(
             margin-top: 10px;
             margin-bottom: 10px;
         }
-
-
-        /* =========================================================
-            TÍTULOS
-           ========================================================= */
-
-        h1 {
-            font-size: 1.9rem !important;
-            margin-bottom: 0.4rem !important;
-        }
-
-        h3 {
-            font-size: 1.2rem !important;
-            margin-top: 0.5rem !important;
-            margin-bottom: 0.4rem !important;
-        }
-
-
-        /* =========================================================
-            ETIQUETAS DE LOS CAMPOS
-           ========================================================= */
-
-        [data-testid="stWidgetLabel"] p {
-            font-size: 12px !important;
-            margin-bottom: 2px !important;
-        }
-
-        label {
-            font-size: 12px !important;
-        }
-
-
-        /* =========================================================
-            INPUTS DE TEXTO Y NUMBER INPUT
-           ========================================================= */
-
-        div[data-baseweb="input"] {
-            min-height: 22px !important;
-            height: 22px !important;
-        }
-
-        div[data-baseweb="input"] input {
-            height: 20px !important;
-            min-height: 20px !important;
-            padding: 1px 6px !important;
-            font-size: 11px !important;
-        }
-
-
-        /* =========================================================
-            SELECT Y MULTISELECT
-           ========================================================= */
-
-        div[data-baseweb="select"] {
-            min-height: 22px !important;
-            font-size: 11px !important;
-        }
-
-        div[data-baseweb="select"] * {
-            font-size: 11px !important;
-        }
-
-
-        /* =========================================================
-            ETIQUETAS SELECCIONADAS DEL MULTISELECT
-           ========================================================= */
-
-        [data-baseweb="tag"] {
-            font-size: 10px !important;
-            padding: 0 4px !important;
-            margin: 0 1px !important;
-            line-height: 17px !important;
-        }
-
-
-        /* =========================================================
-            BOTONES +/- DE NUMBER INPUT
-           ========================================================= */
-
-        [data-testid="stNumberInput"] button {
-            min-height: 22px !important;
-            height: 22px !important;
-            width: 22px !important;
-        }
-
-
-        /* =========================================================
-            DATE INPUT
-           ========================================================= */
-
-        [data-testid="stDateInput"] [data-baseweb="input"] {
-            min-height: 22px !important;
-            height: 22px !important;
-        }
-
-        [data-testid="stDateInput"] input {
-            height: 20px !important;
-            min-height: 20px !important;
-            padding: 1px 6px !important;
-            font-size: 11px !important;
-        }
-
-
-        /* =========================================================
-            ESPACIADO ENTRE ELEMENTOS
-           ========================================================= */
-
-        [data-testid="stVerticalBlock"] {
-            gap: 0.5rem;
-        }
-
-
-        /* =========================================================
-            ESPACIADO DE COLUMNAS
-           ========================================================= */
-
-        [data-testid="column"] {
-            padding-left: 0.3rem;
-            padding-right: 0.3rem;
-        }
-
-
-        /* =========================================================
-            CHECKBOX
-           ========================================================= */
-
-        [data-testid="stCheckbox"] label {
-            font-size: 12px !important;
-        }
-
-
-        /* =========================================================
-            SLIDER
-           ========================================================= */
-
-        [data-testid="stSlider"] {
-            margin-top: 0px;
-            margin-bottom: 0px;
-        }
-
-
-        /* =========================================================
-            ALERTAS
-           ========================================================= */
-
-        [data-testid="stAlert"] {
-            font-size: 13px !important;
-        }
-
-
-        /* =========================================================
-            CONTENEDOR PRINCIPAL
-           ========================================================= */
-
-        .block-container {
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
-        }
-
+        h1 { font-size: 1.9rem !important; margin-bottom: 0.4rem !important; }
+        h3 { font-size: 1.2rem !important; margin-top: 0.5rem !important; margin-bottom: 0.4rem !important; }
+        [data-testid="stWidgetLabel"] p { font-size: 12px !important; margin-bottom: 2px !important; }
+        label { font-size: 12px !important; }
+        div[data-baseweb="input"] { min-height: 22px !important; height: 22px !important; }
+        div[data-baseweb="input"] input { height: 20px !important; min-height: 20px !important; padding: 1px 6px !important; font-size: 11px !important; }
+        div[data-baseweb="select"] { min-height: 22px !important; font-size: 11px !important; }
+        div[data-baseweb="select"] * { font-size: 11px !important; }
+        [data-baseweb="tag"] { font-size: 10px !important; padding: 0 4px !important; margin: 0 1px !important; line-height: 17px !important; }
+        [data-testid="stNumberInput"] button { min-height: 22px !important; height: 22px !important; width: 22px !important; }
+        [data-testid="stDateInput"] [data-baseweb="input"] { min-height: 22px !important; height: 22px !important; }
+        [data-testid="stDateInput"] input { height: 20px !important; min-height: 20px !important; padding: 1px 6px !important; font-size: 11px !important; }
+        [data-testid="stVerticalBlock"] { gap: 0.5rem; }
+        [data-testid="column"] { padding-left: 0.3rem; padding-right: 0.3rem; }
+        [data-testid="stCheckbox"] label { font-size: 12px !important; }
+        [data-testid="stSlider"] { margin-top: 0px; margin-bottom: 0px; }
+        [data-testid="stAlert"] { font-size: 13px !important; }
+        .block-container { padding-top: 1.5rem; padding-bottom: 1.5rem; }
     </style>
     """,
     unsafe_allow_html=True
@@ -235,7 +82,7 @@ supabase = obtener_cliente()
 with st.spinner("Cargando modelo de IA..."):
     encoder = obtener_encoder()
 
-# Opciones de Ámbito/CCAA/Beneficiarios/Tipo convocatoria calculadas a partir de los datos reales (ver search.py)
+# Opciones de Ámbito, CCAA, Beneficiarios y Tipo convocatoria
 (
     AMBITOS_DISPONIBLES,
     CCAA_DISPONIBLES,
@@ -259,6 +106,7 @@ def limpiar_campos():
     st.session_state.filtro_ambito = []
     st.session_state.filtro_ccaa = []
     st.session_state.filtro_beneficiario_opcion = []
+    st.session_state.filtro_titulo_bases_texto = ""
     st.session_state.filtro_tipo_convocatoria = []
     st.session_state.importe_min = 0.0
     st.session_state.importe_max = 0.0
@@ -280,33 +128,18 @@ st.markdown("### ⚙️ Filtros avanzados")
 col0, col_ambito, col1, col2, col3 = st.columns(5)
 
 with col0:
-    filtro_fuente = st.multiselect(
-        "🌐 Fuente",
-        FUENTES_DISPONIBLES,
-        default=[],
-        key="filtro_fuente",
-    )
+    filtro_fuente = st.multiselect("🌐 Fuente", FUENTES_DISPONIBLES, default=[], key="filtro_fuente")
 with col_ambito:
-    filtro_ambito = st.multiselect(
-        "🏛️ Ámbito",
-        AMBITOS_DISPONIBLES,
-        default=[],
-        key="filtro_ambito",
-    )
+    filtro_ambito = st.multiselect("🏛️ Ámbito", AMBITOS_DISPONIBLES, default=[], key="filtro_ambito")
 with col1:
     importe_min = st.number_input("Importe Mínimo (€)", value=0.0, key="importe_min")
 with col2:
     importe_max = st.number_input("Importe Máximo (€)", value=0.0, key="importe_max")
 with col3:
-    filtro_ccaa = st.multiselect(
-        "📍 Comunidad Autónoma",
-        CCAA_DISPONIBLES,
-        default=[],
-        key="filtro_ccaa",
-    )
+    filtro_ccaa = st.multiselect("📍 Comunidad Autónoma", CCAA_DISPONIBLES, default=[], key="filtro_ccaa")
 
-# Campos de Beneficiarios y Tipo de convocatoria (desplegables inteligentes)
-col_beneficiarios_filtro, col_tipo_conv = st.columns(2)
+# Campos de Beneficiarios (multiselect) y Título de bases reguladoras (texto libre)
+col_beneficiarios_filtro, col_titulo_bases = st.columns(2)
 
 with col_beneficiarios_filtro:
     filtro_beneficiario_opcion = st.multiselect(
@@ -315,6 +148,16 @@ with col_beneficiarios_filtro:
         default=[],
         key="filtro_beneficiario_opcion",
     )
+with col_titulo_bases:
+    filtro_titulo_bases_texto = st.text_input(
+        "📜 Título de bases reguladoras (Texto libre)",
+        placeholder="ej. orden ICT/..., bases reguladoras de...",
+        key="filtro_titulo_bases_texto",
+    )
+
+# Fila adicional: Tipo de convocatoria y Fechas
+col_tipo_conv, col_fecha_fin = st.columns([1, 1])
+
 with col_tipo_conv:
     filtro_tipo_convocatoria = st.multiselect(
         "📋 Tipo de convocatoria",
@@ -323,9 +166,6 @@ with col_tipo_conv:
         key="filtro_tipo_convocatoria",
     )
 
-# Fila de fechas
-col_fecha_fin, col_rango = st.columns([1, 2])
-
 with col_fecha_fin:
     fecha_cierre_tope = st.date_input(
         "⏳ Fecha fin de presentación (Mínima)",
@@ -333,29 +173,17 @@ with col_fecha_fin:
         key="fecha_cierre_tope",
     )
 
-with col_rango:
-    col_desde, col_hasta = st.columns(2)
-    with col_desde:
-        f_inicio = st.date_input(
-            "📅 Rango publicación (Desde)",
-            value=date(2026, 1, 1),
-            key="f_inicio",
-        )
-    with col_hasta:
-        f_fin = st.date_input(
-            "📅 Rango publicación (Hasta)",
-            value=date(2100, 12, 31),
-            key="f_fin",
-        )
+col_rango_desde, col_rango_hasta = st.columns(2)
+with col_rango_desde:
+    f_inicio = st.date_input("📅 Rango publicación (Desde)", value=date(2026, 1, 1), key="f_inicio")
+with col_rango_hasta:
+    f_fin = st.date_input("📅 Rango publicación (Hasta)", value=date(2100, 12, 31), key="f_fin")
 
 col_resultados, col_vacio = st.columns([60, 40])
 
 with col_resultados:
     with st.container(border=True):
-        st.markdown(
-            "<strong>¿Cuántos resultados quieres ver?</strong>",
-            unsafe_allow_html=True,
-        )
+        st.markdown("<strong>¿Cuántos resultados quieres ver?</strong>", unsafe_allow_html=True)
 
         if "mostrar_todos" not in st.session_state:
             st.session_state.mostrar_todos = True
@@ -365,25 +193,16 @@ with col_resultados:
         def actualizar_slider():
             st.session_state.mostrar_todos = False
 
-        def actualizar_checkbox():
-            pass
-
         col_res_chk, col_res_texto, col_res_slider = st.columns([2.5, 2, 4])
 
         with col_res_chk:
-            mostrar_todos = st.checkbox(
-                "Mostrar TODOS los resultados",
-                key="mostrar_todos",
-                on_change=actualizar_checkbox,
-            )
+            mostrar_todos = st.checkbox("Mostrar TODOS los resultados", key="mostrar_todos")
 
         color_texto = "gray" if mostrar_todos else "inherit"
 
         with col_res_texto:
             st.markdown(
-                f'<div style="font-size: 12px; padding-top: 8px; color: {color_texto};">'
-                "Seleccionar número de resultados:"
-                "</div>",
+                f'<div style="font-size: 12px; padding-top: 8px; color: {color_texto};">Seleccionar número de resultados:</div>',
                 unsafe_allow_html=True,
             )
 
@@ -402,24 +221,13 @@ with col_resultados:
 col_btn_buscar, col_btn_novedades, col_btn_limpiar = st.columns([2, 2, 2])
 
 with col_btn_buscar:
-    btn_buscar = st.button(
-        "🔍 Buscar subvenciones", type="primary", use_container_width=True
-    )
+    btn_buscar = st.button("🔍 Buscar subvenciones", type="primary", use_container_width=True)
 
 with col_btn_novedades:
-    btn_novedades = st.button(
-        "✨ Novedades",
-        type="secondary",
-        use_container_width=True,
-    )
+    btn_novedades = st.button("✨ Novedades", type="secondary", use_container_width=True)
 
 with col_btn_limpiar:
-    btn_limpiar = st.button(
-        "🔄 Limpiar Filtros",
-        on_click=limpiar_campos,
-        type="secondary",
-        use_container_width=True,
-    )
+    btn_limpiar = st.button("🔄 Limpiar Filtros", on_click=limpiar_campos, type="secondary", use_container_width=True)
 
 
 def estilizar_filas(row):
@@ -468,15 +276,26 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
             return any(s.casefold() in partes for s in seleccion)
         df = df[df["beneficiarios"].apply(cumple_beneficiarios)]
 
-    # 6. Tipo de convocatoria
+    # 6. Título de bases reguladoras (Texto libre)
+    if filtro_titulo_bases_texto and filtro_titulo_bases_texto.strip():
+        texto_busqueda = filtro_titulo_bases_texto.strip().casefold()
+        def cumple_bases(val):
+            if not val or pd.isna(val):
+                return False
+            if isinstance(val, list):
+                return any(texto_busqueda in str(item).casefold() for item in val)
+            return texto_busqueda in str(val).casefold()
+        df = df[df["titulo_bases_reguladoras"].apply(cumple_bases)]
+
+    # 7. Tipo de convocatoria
     if filtro_tipo_convocatoria:
         seleccion = set(filtro_tipo_convocatoria)
         df = df[df["tipo_convocatoria"].apply(lambda lst: bool(set(lst or []) & seleccion))]
 
-    # 7. Fecha de cierre
+    # 8. Fecha de cierre
     def filtrar_fecha_fin(f_str):
         if pd.isna(f_str) or not str(f_str).strip():
-            return True  # sin fecha de cierre especificada -> no se excluye
+            return True
         try:
             return date.fromisoformat(str(f_str)[:10]) >= fecha_cierre_tope
         except (ValueError, TypeError):
@@ -485,7 +304,7 @@ def aplicar_filtros_comunes(df: pd.DataFrame) -> pd.DataFrame:
     if "fecha_fin_solicitud" in df.columns:
         df = df[df["fecha_fin_solicitud"].apply(filtrar_fecha_fin)]
 
-    # 8. Fecha de publicación
+    # 9. Fecha de publicación
     def filtrar_fecha_pub(f_str):
         if pd.isna(f_str) or not str(f_str).strip():
             return False
@@ -506,6 +325,12 @@ def construir_tabla_final(df: pd.DataFrame) -> pd.DataFrame:
     for idx, row in enumerate(df.itertuples(), start=1):
         ccaa_valor = getattr(row, "ccaa", None) or []
         importe_valor = getattr(row, "presupuesto_total", None)
+        bases_valor = getattr(row, "titulo_bases_reguladoras", None)
+        convocatoria_valor = getattr(row, "tipo_convocatoria", None)
+
+        # Formatear arrays o listas de bases reguladoras y tipos de convocatoria para visualización limpia
+        bases_str = ", ".join(bases_valor) if isinstance(bases_valor, list) else (str(bases_valor) if bases_valor else "No especificado")
+        convocatoria_str = ", ".join(convocatoria_valor) if isinstance(convocatoria_valor, list) else (str(convocatoria_valor) if convocatoria_valor else "No especificado")
 
         tabla_final.append({
             "#": idx,
@@ -515,6 +340,8 @@ def construir_tabla_final(df: pd.DataFrame) -> pd.DataFrame:
             "Ámbito": str(getattr(row, "ambito", "") or "No especificado").title(),
             "CCAA": ", ".join(ccaa_valor) if ccaa_valor else "Nacional / No aplica",
             "Beneficiarios": getattr(row, "beneficiarios", None) or "No especificado",
+            "Bases Reguladoras": bases_str,
+            "Tipo Convocatoria": convocatoria_str,
             "Cierre": getattr(row, "fecha_fin_solicitud", None) or "No especificada",
             "Fecha Pub.": getattr(row, "fecha_publicacion", None) or "No especificada",
             "Importe": (
