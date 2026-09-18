@@ -84,8 +84,7 @@ def listar_novedades(supabase: Client) -> list:
 def obtener_opciones_filtro(_supabase: Client) -> tuple:
     """
     Calcula las opciones de los desplegables de Ámbito, CCAA, Beneficiarios
-    (extrayendo opciones del texto separado por comas/punto y coma) y
-    Tipo de convocatoria a partir de los valores realmente presentes en la tabla.
+    y Tipo de convocatoria a partir de los valores realmente presentes en la tabla.
     """
     respuesta = _supabase.table("subvenciones").select(
         "ambito, ccaa, beneficiarios, tipo_convocatoria"
@@ -95,7 +94,7 @@ def obtener_opciones_filtro(_supabase: Client) -> tuple:
     ambitos = sorted({f["ambito"] for f in filas if f.get("ambito")})
     ccaa = sorted({v for f in filas for v in (f.get("ccaa") or [])})
     
-    # Extracción inteligente de opciones del campo beneficiarios separadas por comas o punto y coma
+    # Extracción inteligente de opciones del campo beneficiarios
     beneficiarios_set = set()
     for f in filas:
         b_val = f.get("beneficiarios")
@@ -109,4 +108,5 @@ def obtener_opciones_filtro(_supabase: Client) -> tuple:
 
     tipos_convocatoria = sorted({v for f in filas for v in (f.get("tipo_convocatoria") or [])})
 
+    # Devolvemos 4 elementos (sin bases reguladoras)
     return ambitos, ccaa, beneficiarios_opciones, tipos_convocatoria
