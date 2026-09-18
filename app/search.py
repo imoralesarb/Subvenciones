@@ -36,15 +36,19 @@ def buscar_semantica(
     query_con_prefijo = f"query: {texto.strip()}"
     vector_query = encoder.encode(query_con_prefijo).tolist()
 
-    respuesta = supabase.rpc(
-        "buscar_subvenciones",
-        {
-            "query_embedding": vector_query,
-            "match_threshold": match_threshold,
-            "match_count": match_count,
-        },
-    ).execute()
-    return respuesta.data or []
+    try:
+        respuesta = supabase.rpc(
+            "buscar_subvenciones",
+            {
+                "query_embedding": vector_query,
+                "match_threshold": match_threshold,
+                "match_count": match_count,
+            },
+        ).execute()
+        return respuesta.data or []
+    except Exception as e:
+        st.error(f"Error en la búsqueda semántica de Supabase: {e}")
+        return []
 
 
 def _listar_paginado(supabase: Client, solo_novedades: bool) -> list:
