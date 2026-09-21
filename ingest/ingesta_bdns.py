@@ -726,9 +726,9 @@ def construir_registro(
     # CAMPOS NUEVOS (aditivos, ver funciones extraer_* de arriba)
     # --------------------------------------------------------
 
-    tipo_beneficiario_elegible = extraer_tipo_beneficiario_elegible(
-        data
-    )
+    #tipo_beneficiario_elegible = extraer_tipo_beneficiario_elegible(
+    #    data
+    #)
 
     titulo_bases_reguladoras = extraer_titulo_bases_reguladoras(
         data
