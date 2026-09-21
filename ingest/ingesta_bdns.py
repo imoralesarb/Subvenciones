@@ -21,6 +21,7 @@ a Supabase para evitar el error:
     Object of type date is not JSON serializable
 """
 
+import re
 import time
 from datetime import date, datetime, timedelta
 
@@ -445,6 +446,75 @@ def extraer_titulo_bases_reguladoras(data: dict) -> list:
 
 
 # ============================================================
+# TEXTO PLANO + EMBEDDING PRECOMPUTADO DE "BASES REGULADORAS"
+# ============================================================
+# Antes, la búsqueda de "Título de bases reguladoras" recalculaba el
+# embedding de este campo en Python, fila a fila, EN CADA BÚSQUEDA del
+# usuario (ver evaluar_bases en la versión anterior de app/app.py) --
+# el cuello de botella real al combinar los dos filtros de búsqueda.
+# Ahora se calcula UNA SOLA VEZ aquí, en la ingesta (igual que ya se
+# hace con el embedding principal vía construir_texto_completo), y se
+# consulta luego por índice HNSW desde la función RPC
+# buscar_por_bases_reguladoras (ver sql/migracion_busqueda_hibrida_bases_reguladoras.sql).
+#
+# _limpiar_texto_bases_para_embedding quita el boilerplate legal más
+# habitual (fórmulas de encabezado de la norma, "por la que se
+# aprueban/establecen las bases reguladoras de/para...") ANTES de
+# generar el embedding: los títulos de bases reguladoras son textos
+# cortos y muy formulaicos, y ese boilerplate casi idéntico entre
+# convocatorias distintas diluye la señal semántica real (la materia
+# de la convocatoria) y hace que el ranking por similitud coseno salga
+# poco discriminado. Si tras la limpieza no queda texto útil, se usa el
+# original tal cual -- mejor un embedding con algo de ruido que uno
+# vacío.
+PATRONES_BOILERPLATE_BASES = (
+    r"por (?:la|el) (?:que|cual) se (?:aprueban|establecen|regulan|fijan|modifican)",
+    r"bases reguladoras (?:de|para|del|específicas de|específicas para)",
+    r"^(?:orden|resoluci[oó]n|real decreto|decreto|ley)\s+[\w./-]+,?\s*de\s+\d{1,2}\s+de\s+\w+(?:\s+de\s+\d{4})?,?",
+)
+
+
+def _limpiar_texto_bases_para_embedding(texto: str) -> str:
+    limpio = texto
+    for patron in PATRONES_BOILERPLATE_BASES:
+        limpio = re.sub(patron, " ", limpio, flags=re.IGNORECASE)
+    # Tras quitar las fórmulas de arriba quedan a veces artículos/
+    # preposiciones sueltos y duplicados (p. ej. "las bases reguladoras
+    # de la digitalización" -> "las   la digitalización"): se colapsan
+    # aquí para no ensuciar el embedding con ese ruido.
+    limpio = re.sub(
+        r"\b(el|la|los|las|de|del|para)\s+(el|la|los|las|de|del|para)\b",
+        r"\2",
+        limpio,
+        flags=re.IGNORECASE,
+    )
+    limpio = re.sub(r"\s+", " ", limpio).strip(" ,.-")
+    return limpio or texto
+
+
+def construir_texto_y_embedding_bases_reguladoras(titulo_bases_reguladoras: list) -> tuple:
+    """
+    Devuelve (texto_plano, embedding) para la columna array
+    `titulo_bases_reguladoras`. texto_plano alimenta la búsqueda léxica
+    (pg_trgm) y NO se limpia de boilerplate (para la coincidencia
+    léxica el texto completo, tal cual aparece, es lo correcto);
+    embedding sí se genera sobre el texto ya limpiado.
+    Devuelve (None, None) si la lista viene vacía -- no hay nada que
+    guardar ni que embeder.
+    """
+    if not titulo_bases_reguladoras:
+        return None, None
+
+    texto_plano = " ".join(titulo_bases_reguladoras).strip()
+    if not texto_plano:
+        return None, None
+
+    texto_para_embedding = _limpiar_texto_bases_para_embedding(texto_plano)
+    embedding = generar_embedding(texto_para_embedding)
+    return texto_plano, embedding
+
+
+# ============================================================
 # EXTRAER TIPO DE CONVOCATORIA (campo nuevo, aditivo)
 # ============================================================
 # AVISO: a diferencia de las dos funciones anteriores, el nombre exacto
@@ -734,6 +804,15 @@ def construir_registro(
         data
     )
 
+    # Texto plano + embedding precomputado (ver docstring de la función):
+    # esto es lo que sustituye el recalculo en Python de la version
+    # anterior de app/app.py.
+    titulo_bases_reguladoras_texto, embedding_bases_reguladoras = (
+        construir_texto_y_embedding_bases_reguladoras(
+            titulo_bases_reguladoras
+        )
+    )
+
     tipo_convocatoria = extraer_tipo_convocatoria(
         data
     )
@@ -826,6 +905,12 @@ def construir_registro(
 
         "titulo_bases_reguladoras":
             titulo_bases_reguladoras,
+
+        "titulo_bases_reguladoras_texto":
+            titulo_bases_reguladoras_texto,
+
+        "embedding_bases_reguladoras":
+            embedding_bases_reguladoras,
 
         "tipo_convocatoria":
             tipo_convocatoria,
