@@ -44,6 +44,42 @@ def buscar_semantica(
         return []
 
 
+def buscar_por_bases_reguladoras(
+    supabase: Client,
+    encoder: SentenceTransformer,
+    texto: str,
+    match_count: int = 999999,
+) -> dict:
+    """
+    Búsqueda híbrida (semántica + léxica) de "Título de bases reguladoras"
+    vía la función RPC `buscar_por_bases_reguladoras` -- TODO el cálculo
+    (embedding y trigramas) se resuelve dentro de Postgres, con sus
+    índices, en una sola llamada. Sustituye el recálculo de embeddings
+    fila a fila en Python que antes hacía app.py en cada búsqueda (el
+    cuello de botella real al combinar los dos filtros de texto).
+
+    Devuelve {codigo_unico: score_bases}, pensado para cruzarse con el
+    DataFrame de resultados por esa misma columna (ver app.py).
+    """
+    query_con_prefijo = f"query: {texto.strip()}"
+    vector_query = encoder.encode(query_con_prefijo).tolist()
+
+    try:
+        respuesta = supabase.rpc(
+            "buscar_por_bases_reguladoras",
+            {
+                "query_embedding": vector_query,
+                "query_texto": texto.strip(),
+                "match_count": match_count,
+            },
+        ).execute()
+        filas = respuesta.data or []
+        return {f["codigo_unico"]: f["score_bases"] for f in filas}
+    except Exception as e:
+        st.error(f"Error en la búsqueda de bases reguladoras: {e}")
+        return {}
+
+
 def _listar_paginado(supabase: Client, solo_novedades: bool) -> list:
     """Trae toda la tabla (o solo novedades/actualizaciones) en lotes de 1000 filas."""
     resultados = []

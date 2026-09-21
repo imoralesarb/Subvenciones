@@ -2,11 +2,10 @@ from datetime import date, timedelta
 
 import pandas as pd
 import streamlit as st
-from sentence_transformers import util
 
 from config import FUENTES_DISPONIBLES
 from db import obtener_cliente, obtener_encoder
-from search import buscar_semantica, listar_novedades, listar_todas, obtener_opciones_filtro
+from search import buscar_por_bases_reguladoras, buscar_semantica, listar_novedades, listar_todas, obtener_opciones_filtro
 
 # Desactivar traductor automático del navegador
 st.markdown(
@@ -239,7 +238,7 @@ def estilizar_filas(row):
     return [""] * len(row)
 
 
-def aplicar_filtros_comunes(df: pd.DataFrame, texto_bases_busqueda: str = "") -> pd.DataFrame:
+def aplicar_filtros_comunes(df: pd.DataFrame, scores_bases: dict = None) -> pd.DataFrame:
     if df.empty:
         return df
 
@@ -277,38 +276,15 @@ def aplicar_filtros_comunes(df: pd.DataFrame, texto_bases_busqueda: str = "") ->
             return any(s.casefold() in partes for s in seleccion)
         df = df[df["beneficiarios"].apply(cumple_beneficiarios)]
 
-    # 6. Título de bases reguladoras (Búsqueda Híbrida: Coincidencia Exacta + Semántica IA)
-    if texto_bases_busqueda and texto_bases_busqueda.strip():
-        texto_busq = texto_bases_busqueda.strip().casefold()
-        query_bases_embed = encoder.encode(f"query: {texto_busq}")
-        
-        def evaluar_bases(val):
-            if not val or pd.isna(val):
-                return 0.0 # No cumple
-            items = val if isinstance(val, list) else [str(val)]
-            max_score = 0.0
-            
-            for item in items:
-                if not item.strip():
-                    continue
-                item_str = str(item).casefold()
-                
-                # A. Coincidencia exacta o parcial por texto (otorga base alta de relevancia)
-                if texto_busq in item_str:
-                    max_score = max(max_score, 0.85)
-                
-                # B. Similitud semántica con Transformer
-                item_embed = encoder.encode(f"passage: {str(item)}")
-                similitud = util.cos_sim(query_bases_embed, item_embed).item()
-                
-                if similitud >= 0.35: # Umbral flexible
-                    max_score = max(max_score, float(similitud))
-                    
-            return max_score
-
-        # Añadimos puntuación temporal de bases reguladoras al DataFrame
-        df["score_bases"] = df["titulo_bases_reguladoras"].apply(evaluar_bases)
-        # Filtramos solo las que tengan un score mayor a 0 (es decir, que cumplan alguna de las dos)
+    # 6. Título de bases reguladoras (búsqueda híbrida semántica + léxica,
+    # resuelta ENTERAMENTE en Postgres vía la función RPC
+    # buscar_por_bases_reguladoras -- ver search.py. `scores_bases` ya
+    # viene calculado desde procesar_resultados con UNA sola llamada;
+    # aquí solo se cruza por codigo_unico, sin ningún cálculo de
+    # embeddings en este bucle -- eso es lo que antes causaba la
+    # lentitud al combinar los dos filtros de texto.)
+    if scores_bases:
+        df["score_bases"] = df["codigo_unico"].map(scores_bases).fillna(0.0)
         df = df[df["score_bases"] > 0.0]
 
     # 7. Tipo de convocatoria
@@ -362,8 +338,15 @@ def procesar_resultados(resultados: list, contexto: str, texto_bases_busqueda: s
     else:
         df["relevancia_general"] = 1.0 if not consulta_texto.strip() else 0.5
 
-    # Aplicar filtros (incluyendo el filtrado y puntuación de bases reguladoras)
-    df = aplicar_filtros_comunes(df, texto_bases_busqueda)
+    # Búsqueda híbrida de "Título de bases reguladoras": UNA sola llamada
+    # a Postgres (vía RPC) para todo el DataFrame, no un bucle en Python
+    # fila a fila -- ver search.buscar_por_bases_reguladoras.
+    scores_bases = None
+    if texto_bases_busqueda and texto_bases_busqueda.strip():
+        scores_bases = buscar_por_bases_reguladoras(supabase, encoder, texto_bases_busqueda)
+
+    # Aplicar filtros (incluyendo el filtrado por puntuación de bases reguladoras)
+    df = aplicar_filtros_comunes(df, scores_bases)
 
     if df.empty:
         st.session_state.df_resultados = None
