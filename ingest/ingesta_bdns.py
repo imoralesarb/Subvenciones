@@ -821,8 +821,8 @@ def construir_registro(
         "beneficiarios":
             beneficiarios,
 
-        "tipo_beneficiario_elegible":
-            tipo_beneficiario_elegible,
+       # "tipo_beneficiario_elegible":
+       #     tipo_beneficiario_elegible,
 
         "titulo_bases_reguladoras":
             titulo_bases_reguladoras,
