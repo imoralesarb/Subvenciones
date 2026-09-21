@@ -37,7 +37,7 @@ PATRON_CONCESION = re.compile(
 # Un número de convocatoria BDNS suele citarse como "BDNS(Identif.): 123456".
 PATRON_NUMERO_BDNS = re.compile(r"BDNS[^\d]{0,15}(\d{5,9})", re.IGNORECASE)
 
-DIAS_ATRAS = 1  # por defecto se procesan ayer y hoy (misma ventana que la BDNS)
+DIAS_ATRAS = 2  # por defecto se procesan ayer y hoy (misma ventana que la BDNS)
 
 COLUMNAS_EXISTENTES = (
     "id",
