@@ -74,7 +74,7 @@ CAMPOS_COMPARABLES = (
     "ambito",
     "ccaa",
     "beneficiarios",
-    "tipo_beneficiario_elegible",
+    #"tipo_beneficiario_elegible",
     "titulo_bases_reguladoras",
     "tipo_convocatoria",
     "presupuesto_total",
@@ -403,20 +403,20 @@ def extraer_beneficiarios(
 # pero como LISTA -- no como una única cadena unida por comas -- para
 # poder guardarla en la columna array tipo_beneficiario_elegible y
 # ofrecerla como filtro de selección múltiple en la interfaz.
-def extraer_tipo_beneficiario_elegible(data: dict) -> list:
-    beneficiarios = data.get("tiposBeneficiarios") or []
-    if not isinstance(beneficiarios, list):
-        return []
+#def extraer_tipo_beneficiario_elegible(data: dict) -> list:
+#    beneficiarios = data.get("tiposBeneficiarios") or []
+#    if not isinstance(beneficiarios, list):
+#        return []
 
-    valores = []
-    for beneficiario in beneficiarios:
-        if not isinstance(beneficiario, dict):
-            continue
-        descripcion = beneficiario.get("descripcion")
-        if descripcion:
-            valores.append(str(descripcion))
+#    valores = []
+#    for beneficiario in beneficiarios:
+#        if not isinstance(beneficiario, dict):
+#            continue
+#        descripcion = beneficiario.get("descripcion")
+#        if descripcion:
+#            valores.append(str(descripcion))
 
-    return list(dict.fromkeys(valores))
+#    return list(dict.fromkeys(valores))
 
 
 # ============================================================
