@@ -25,17 +25,15 @@ jobs:
           python - <<'PY'
           import os
           from supabase import create_client
-
+          
           SUPABASE_URL = os.environ["SUPABASE_URL"]
           SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
-
-          supabase = create_client(
-              SUPABASE_URL,
-              SUPABASE_SERVICE_KEY
-          )
-
+          
+          supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+          
           print("🔄 Reseteando flags de subvenciones...")
-
+          
+          # Solo actualizamos los registros que tienen alguna flag activa
           respuesta = (
               supabase
               .table("subvenciones")
@@ -43,10 +41,9 @@ jobs:
                   "es_novedad": False,
                   "es_actualizada": False
               })
-              .neq("id", 0)
+              .or_("es_novedad.eq.true,es_actualizada.eq.true")
               .execute()
           )
-
+          
           print("✅ Flags reseteadas correctamente.")
-          print(respuesta)
           PY
