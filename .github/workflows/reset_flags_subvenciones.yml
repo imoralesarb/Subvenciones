@@ -31,18 +31,21 @@ jobs:
           
           supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
           
-          print("🔄 Reseteando flags de subvenciones en lotes...")
+          print("🔄 Reseteando flags de subvenciones en lotes seguros...")
           
           total_actualizados = 0
           tamano_lote = 1000
+          ultimo_id = 0
           
           while True:
-              # 1. Obtener un lote de IDs que todavía tengan alguna flag en True
+              # 1. Seleccionamos bloques por ID ordenados (evita escaneos pesados de tabla)
               resp_select = (
                   supabase
                   .table("subvenciones")
                   .select("id")
                   .or_("es_novedad.eq.true,es_actualizada.eq.true")
+                  .gt("id", ultimo_id)
+                  .order("id", desc=False)
                   .limit(tamano_lote)
                   .execute()
               )
@@ -50,21 +53,18 @@ jobs:
               registros = resp_select.data or []
               if not registros:
                   break
-                  
-              ids = [r["id"] for r in registros]
               
-              # 2. Actualizar ese lote específico de IDs
+              ids = [r["id"] for r in registros]
+              ultimo_id = ids[-1]  # Actualizamos el puntero al último ID del lote
+              
+              # 2. Actualizamos el lote actual
               supabase.table("subvenciones").update({
                   "es_novedad": False,
                   "es_actualizada": False
               }).in_("id", ids).execute()
               
               total_actualizados += len(ids)
-              print(f"   -> Lote procesado: {total_actualizados} registros actualizados...")
-              
-              # Si trajimos menos del tamaño del lote, ya hemos terminado
-              if len(registros) < tamano_lote:
-                  break
+              print(f"   -> Procesados hasta ID {ultimo_id}. Total actualizados: {total_actualizados}")
           
           print(f"✅ Flags reseteadas correctamente. Total registros modificados: {total_actualizados}.")
           PY
