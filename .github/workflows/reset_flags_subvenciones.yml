@@ -31,19 +31,40 @@ jobs:
           
           supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
           
-          print("🔄 Reseteando flags de subvenciones...")
+          print("🔄 Reseteando flags de subvenciones en lotes...")
           
-          # Solo actualizamos los registros que tienen alguna flag activa
-          respuesta = (
-              supabase
-              .table("subvenciones")
-              .update({
+          total_actualizados = 0
+          tamano_lote = 1000
+          
+          while True:
+              # 1. Obtener un lote de IDs que todavía tengan alguna flag en True
+              resp_select = (
+                  supabase
+                  .table("subvenciones")
+                  .select("id")
+                  .or_("es_novedad.eq.true,es_actualizada.eq.true")
+                  .limit(tamano_lote)
+                  .execute()
+              )
+              
+              registros = resp_select.data or []
+              if not registros:
+                  break
+                  
+              ids = [r["id"] for r in registros]
+              
+              # 2. Actualizar ese lote específico de IDs
+              supabase.table("subvenciones").update({
                   "es_novedad": False,
                   "es_actualizada": False
-              })
-              .or_("es_novedad.eq.true,es_actualizada.eq.true")
-              .execute()
-          )
+              }).in_("id", ids).execute()
+              
+              total_actualizados += len(ids)
+              print(f"   -> Lote procesado: {total_actualizados} registros actualizados...")
+              
+              # Si trajimos menos del tamaño del lote, ya hemos terminado
+              if len(registros) < tamano_lote:
+                  break
           
-          print("✅ Flags reseteadas correctamente.")
+          print(f"✅ Flags reseteadas correctamente. Total registros modificados: {total_actualizados}.")
           PY
