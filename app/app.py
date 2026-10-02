@@ -391,7 +391,34 @@ if "mensaje_estado" not in st.session_state:
     st.session_state.mensaje_estado = ""
 
 # 2. Interfaz Visual y Gestión de Estado
-st.title("💶 Buscador inteligente de Subvenciones")
+
+
+def cerrar_sesion():
+    """
+    Cierra la sesión. Se borra TODO el estado (filtros, resultados...), no solo
+    la marca de sesión iniciada, para que quien entre después desde el mismo
+    navegador no vea la última búsqueda. Al ser un callback (on_click), Streamlit
+    relanza el script a continuación y vuelve a aparecer el login.
+    """
+    st.session_state.clear()
+
+
+col_titulo, col_cerrar_sesion = st.columns([8, 1])
+
+with col_titulo:
+    st.title("💶 Buscador inteligente de Subvenciones")
+
+with col_cerrar_sesion:
+    # Espaciador: baja el botón para que quede alineado con el título y no lo tape la
+    # barra superior de Streamlit (el CSS de arriba deja solo 1,5 rem de margen superior).
+    st.markdown('<div style="height: 32px;"></div>', unsafe_allow_html=True)
+    st.button(
+        "Cerrar sesión",
+        on_click=cerrar_sesion,
+        type="secondary",
+        use_container_width=True,
+        key="btn_cerrar_sesion",
+    )
 
 
 def limpiar_campos():
