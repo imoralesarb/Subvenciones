@@ -34,7 +34,7 @@ jobs:
           print("🔄 Reseteando flags de subvenciones en lotes seguros...")
           
           total_actualizados = 0
-          tamano_lote = 1000
+          tamano_lote = 200
           ultimo_id = 0
           
           while True:
