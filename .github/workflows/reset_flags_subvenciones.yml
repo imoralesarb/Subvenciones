@@ -1,21 +1,21 @@
 - name: Resetear flags
-    env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-    run: |
-      python - <<'PY'
-      import os
-      from supabase import create_client
-          
-      SUPABASE_URL = os.environ["SUPABASE_URL"]
-      SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
-          
-      supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-          
-      print("🔄 Ejecutando reseteo optimizado de flags vía RPC...")
-          
-      # Llamamos a la función almacenada en la base de datos
-      response = supabase.rpc("resetear_flags_subvenciones", {"lote_size": 5000}).execute()
-          
-      print(f"✅ Flags reseteadas correctamente. Total registros modificados: {response.data}.")
-      PY
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          from supabase import create_client
+
+          SUPABASE_URL = os.environ["SUPABASE_URL"]
+          SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+
+          supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+          print("🔄 Ejecutando reseteo optimizado de flags vía RPC...")
+
+          # Llamamos a la función almacenada en la base de datos
+          response = supabase.rpc("resetear_flags_subvenciones", {"lote_size": 5000}).execute()
+
+          print(f"✅ Flags reseteadas correctamente. Total registros modificados: {response.data}.")
+          PY
