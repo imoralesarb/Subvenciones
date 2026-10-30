@@ -8,33 +8,86 @@ on:
   # Permite ejecutarlo manualmente desde GitHub
   workflow_dispatch:
 
+# Evita ejecuciones simultáneas de este proceso
+concurrency:
+  group: reset-flags-subvenciones
+  cancel-in-progress: false
+
 jobs:
   reset-flags:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Instalar dependencias
-        run: |
-          pip install supabase
+        run: pip install supabase
 
-      - name: Resetear flags
+      - name: Resetear flags por lotes
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           python - <<'PY'
           import os
+          import time
           from supabase import create_client
 
-          SUPABASE_URL = os.environ["SUPABASE_URL"]
-          SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+          supabase = create_client(
+              os.environ["SUPABASE_URL"],
+              os.environ["SUPABASE_SERVICE_KEY"]
+          )
 
-          supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+          LOTE_SIZE = 500
+          MAX_LOTES = 1000
+          total = 0
 
-          print("🔄 Ejecutando reseteo optimizado de flags vía RPC...")
+          print("Iniciando reseteo de flags...")
 
-          # Llamamos a la función almacenada en la base de datos
-          response = supabase.rpc("resetear_flags_subvenciones", {"lote_size": 5000}).execute()
+          for numero_lote in range(1, MAX_LOTES + 1):
+              for intento in range(1, 4):
+                  try:
+                      response = supabase.rpc(
+                          "resetear_flags_subvenciones",
+                          {"lote_size": LOTE_SIZE}
+                      ).execute()
 
-          print(f"✅ Flags reseteadas correctamente. Total registros modificados: {response.data}.")
+                      cantidad = int(response.data or 0)
+                      break
+
+                  except Exception as error:
+                      if intento == 3:
+                          raise
+
+                      espera = 2 ** intento
+                      print(
+                          f"Error en lote {numero_lote}, "
+                          f"intento {intento}/3: {error}"
+                      )
+                      print(f"Reintentando en {espera} segundos...")
+                      time.sleep(espera)
+
+              if cantidad == 0:
+                  print("No quedan flags activos.")
+                  break
+
+              total += cantidad
+
+              print(
+                  f"Lote {numero_lote}: "
+                  f"{cantidad} filas actualizadas. "
+                  f"Total acumulado: {total}"
+              )
+
+              time.sleep(0.2)
+
+          else:
+              raise RuntimeError(
+                  "Se alcanzó el límite de lotes. "
+                  "Revisa si quedan flags activos."
+              )
+
+          print(
+              f"Reseteo completado. "
+              f"Total de filas: {total}"
+          )
           PY
